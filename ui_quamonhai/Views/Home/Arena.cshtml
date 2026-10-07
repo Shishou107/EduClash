@@ -8,6 +8,7 @@
 @section Styles {
     <link rel="stylesheet" href="~/css/arena.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/cabinet.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/battle-fx.css" asp-append-version="true" />
 }
 
 <div class="wrap">
@@ -174,48 +175,40 @@
         </div>
 
         <div class="pixel-top-banner">
-            <div class="pixel-banner-inner" aria-live="polite">
-                <span class="pixel-gold-label" id="questionNumberLabel">CAU 1/20</span>
-                <span class="pixel-question-text" id="questionText">Đang chuẩn bị câu hỏi…</span>
+            <div class="pixel-banner-inner">
+                <span class="pixel-gold-label" id="questionNumberLabel">1/20</span>
+                <span class="pixel-question-text" id="questionText" aria-hidden="true"></span>
+                <span class="visually-hidden" id="questionTextSr" aria-live="polite"></span>
             </div>
+            <div class="fx-burn" aria-hidden="true"><div class="fx-burn__fill" id="fxBurn"></div></div>
         </div>
 
-        <div class="pixel-battlefield" aria-hidden="true">
+        <div class="pixel-battlefield fx-stage" id="fxStage" aria-hidden="true">
+            <span class="fx-cloud c1"></span><span class="fx-cloud c2"></span><span class="fx-cloud c3"></span>
             <div class="pixel-hills-backdrop"></div>
             <div class="pixel-scenery-tree tree-left"><div class="tree-foliage"></div><div class="tree-trunk"></div></div>
             <div class="pixel-scenery-tree tree-right"><div class="tree-foliage"></div><div class="tree-trunk"></div></div>
 
-            <div class="pixel-fighter-station station-left">
-                <div class="fighter-header">
-                    <span class="fighter-tag-title" id="p1NameTag">BAN</span><span class="fighter-hp" id="p1HpText">200 HP</span>
-                    <div class="pixel-health-bar-frame"><div class="pixel-health-bar-fill fill-green" id="p1HealthFill"></div></div>
+            <div class="fx-hud">
+                <div class="fx-hud__side" id="p1Hud">
+                    <div class="fx-hud__name"><span class="fighter-tag-title" id="p1NameTag">BAN</span><span class="fighter-hp" id="p1HpText">200 HP</span></div>
+                    <div class="fx-bar"><div class="fx-bar__ghost" id="p1Ghost"></div><div class="pixel-health-bar-fill fill-green" id="p1HealthFill"></div></div>
                 </div>
-                <div class="floating-damage-popup d-none" id="damagePop1">-20 HP</div>
-                <div class="pixel-guy-model" id="guy1">
-                    <div class="guy-head head-blue"><div class="guy-eyes"><span class="eye-dot"></span><span class="eye-dot"></span></div></div>
-                    <div class="guy-torso torso-blue"></div>
-                    <div class="guy-legs"><span class="leg-pixel"></span><span class="leg-pixel"></span></div>
-                    <div class="guy-gun-arm arm-right"><div class="pixel-pistol"><div class="pixel-muzzle-flash flash-right d-none" id="flash1"></div></div></div>
+                <span class="fx-hud__vs">VS</span>
+                <div class="fx-hud__side is-right" id="p2Hud">
+                    <div class="fx-hud__name"><span class="fighter-tag-title" id="p2NameTag">DOI THU</span><span class="fighter-hp" id="p2HpText">200 HP</span></div>
+                    <div class="fx-bar"><div class="fx-bar__ghost" id="p2Ghost"></div><div class="pixel-health-bar-fill fill-red" id="p2HealthFill"></div></div>
                 </div>
             </div>
 
-            <div class="pixel-flying-bullet bullet-move-right d-none" id="bullet1"></div>
-            <div class="pixel-flying-bullet bullet-move-left d-none" id="bullet2"></div>
+            <div class="wizard wizard--p1 is-idle" id="wiz1"><div class="wizard__body"></div></div>
+            <div class="wizard wizard--p2 is-idle" id="wiz2"><div class="wizard__body"></div></div>
+            <div class="floating-damage-popup d-none" id="damagePop1">-20</div>
+            <div class="floating-damage-popup d-none" id="damagePop2">-20</div>
 
-            <div class="pixel-fighter-station station-right">
-                <div class="fighter-header">
-                    <span class="fighter-tag-title" id="p2NameTag">DOI THU</span><span class="fighter-hp" id="p2HpText">200 HP</span>
-                    <div class="pixel-health-bar-frame"><div class="pixel-health-bar-fill fill-red" id="p2HealthFill"></div></div>
-                </div>
-                <div class="floating-damage-popup d-none" id="damagePop2">-20 HP</div>
-                <div class="pixel-guy-model" id="guy2">
-                    <div class="guy-head head-red"><div class="guy-eyes"><span class="eye-dot"></span><span class="eye-dot"></span></div></div>
-                    <div class="guy-torso torso-red"></div>
-                    <div class="guy-legs"><span class="leg-pixel"></span><span class="leg-pixel"></span></div>
-                    <div class="guy-gun-arm arm-left"><div class="pixel-pistol"><div class="pixel-muzzle-flash flash-left d-none" id="flash2"></div></div></div>
-                </div>
-            </div>
-
+            <div class="fx-layer" id="fxLayer"></div>
+            <div class="fx-combo" id="fxCombo"></div>
+            <div class="fx-overlay" id="fxOverlay"></div>
             <div class="pixel-grass-floor"></div>
         </div>
 
@@ -292,6 +285,7 @@
 </div>
 
 @section Scripts {
+<script src="~/js/arena-fx.js" asp-append-version="true"></script>
 <script>
     // Thông tin người dùng hiện tại
     const CURRENT_USER_ID = "@(userProfile?.UserId.ToString() ?? "")";
@@ -313,6 +307,8 @@
     let p1Hp = 200;
     let p2Hp = 200;
     let p1Score = 0;
+    let p1Combo = 0;
+    let endingStarted = false;
     let timerVal = 15;
     let timerTimer = null;
     let isSubmitting = false;
@@ -851,8 +847,12 @@
         waitingOpponentCard?.classList.add('d-none');
         answersContainer?.classList.remove('d-none');
 
+        p1Combo = 0;
+        endingStarted = false;
+        answersContainer.innerHTML = '';
+        ArenaFX.reset();
         updateHealthUI();
-        loadQuestion();
+        ArenaFX.intro(() => loadQuestion());
 
         // BẮT ĐẦU ĐỒNG BỘ TIẾN TRÌNH REAL-TIME GIỮA 2 CLIENT (MỖI 800MS)
         clearInterval(roomGameSyncTimer);
@@ -980,8 +980,12 @@
         waitingOpponentCard?.classList.add('d-none');
         answersContainer?.classList.remove('d-none');
 
+        p1Combo = 0;
+        endingStarted = false;
+        answersContainer.innerHTML = '';
+        ArenaFX.reset();
         updateHealthUI();
-        loadQuestion();
+        ArenaFX.intro(() => loadQuestion());
     }
 
     // =========================================================================
@@ -1000,7 +1004,7 @@
 
         const q = currentQuestions[qIndex];
         document.getElementById('questionNumberLabel').innerText = `${qIndex + 1}/${currentQuestions.length}`;
-        document.getElementById('questionText').innerText = q.text;
+        ArenaFX.type(document.getElementById('questionText'), q.text);
 
         answersContainer.innerHTML = '';
         resetDeck(q.answers.length);
@@ -1031,6 +1035,7 @@
         const valStr = timerVal < 10 ? `0${timerVal}` : `${timerVal}`;
         document.getElementById('battleTimerText').innerText = `00:${valStr}`;
         document.getElementById('timerBox').classList.toggle('is-low', timerVal <= 5);
+        ArenaFX.timer(timerVal);
     }
 
     function chooseAnswer(selectedAns, clickedBtn) {
@@ -1051,6 +1056,8 @@
         if (isCorrect) {
             // BẠN TRẢ LỜI ĐÚNG -> BẠN ĐƯỢC BẮN ĐỐI THỦ (-20 HP)!
             p1Score++;
+            p1Combo++;
+            ArenaFX.combo(p1Combo);
             triggerPlayer1Shoot();
 
             // Gửi kết quả lên server nếu là trận đấu phòng thật
@@ -1077,7 +1084,10 @@
             }
         } else {
             // BẠN TRẢ LỜI SAI HOẶC HẾT GIỜ -> TUYỆT ĐỐI KHÔNG AI BẮN! CÔNG BẰNG TUYỆT ĐỐI!
-            document.getElementById('battleLogText').innerHTML = '<span class="log-muted">Sai hoặc hết giờ: lượt này không ai bị bắn.</span>';
+            document.getElementById('battleLogText').innerHTML = '<span class="log-muted">Sai hoặc hết giờ: phép xịt khói, lượt này không ai trúng đòn.</span>';
+            p1Combo = 0;
+            ArenaFX.combo(0);
+            ArenaFX.fizzle(1);
 
             // Gửi kết quả sai lên server
             if (isRealMatch && currentRoom) {
@@ -1132,39 +1142,32 @@
 
     // HIỆU ỨNG BẮN ĐẠN & TRỪ MÁU
     function triggerPlayer1Shoot() {
-        document.getElementById('flash1').classList.remove('d-none');
-        document.getElementById('battleLogText').innerHTML = '<span class="log-ok">Đúng! Bạn bắn trúng đối thủ, -20 HP.</span>';
+        const crit = p1Combo >= 3;
+        document.getElementById('battleLogText').innerHTML = crit
+            ? `<span class="log-ok">COMBO x${p1Combo}! Phép cực mạnh trúng đối thủ, -20 HP.</span>`
+            : '<span class="log-ok">Đúng! Phép của bạn trúng đối thủ, -20 HP.</span>';
         playWebAudio('shoot');
-
-        setTimeout(() => document.getElementById('flash1').classList.add('d-none'), 200);
-
-        const bullet = document.getElementById('bullet1');
-        bullet.classList.remove('d-none');
+        ArenaFX.cast(1, crit);
 
         setTimeout(() => {
-            bullet.classList.add('d-none');
             p2Hp = Math.max(0, p2Hp - 20);
             updateHealthUI();
-            showDamage(2, "-20 HP");
+            showDamage(2, "-20");
+            ArenaFX.impact(2, crit);
             playWebAudio('hit');
         }, 350);
     }
 
     function triggerOpponentShot() {
-        document.getElementById('flash2').classList.remove('d-none');
-        document.getElementById('battleLogText').innerHTML = '<span class="log-bad">Đối thủ trả lời đúng và bắn trúng bạn, -20 HP.</span>';
+        document.getElementById('battleLogText').innerHTML = '<span class="log-bad">Đối thủ trả lời đúng, phép trúng bạn, -20 HP.</span>';
         playWebAudio('shoot');
-
-        setTimeout(() => document.getElementById('flash2').classList.add('d-none'), 200);
-
-        const bullet = document.getElementById('bullet2');
-        bullet.classList.remove('d-none');
+        ArenaFX.cast(2);
 
         setTimeout(() => {
-            bullet.classList.add('d-none');
             p1Hp = Math.max(0, p1Hp - 20);
             updateHealthUI();
-            showDamage(1, "-20 HP");
+            showDamage(1, "-20");
+            ArenaFX.impact(1);
             playWebAudio('hit');
 
             if (p1Hp <= 0) {
@@ -1189,12 +1192,30 @@
         document.getElementById('p2NameTag').innerText = asciiName(opponentName);
         document.getElementById('p1HpText').innerText = `${p1Hp} HP`;
         document.getElementById('p2HpText').innerText = `${p2Hp} HP`;
+        ArenaFX.health(p1Hp, p2Hp);
     }
 
     // =========================================================================
     // TỔNG KẾT TRẬN ĐẤU (SO SÁNH MÁU HOẶC XỬ THẮNG KHI ĐỐI THỦ THOÁT)
     // =========================================================================
     function endGame(isWon, isSurrendered, isOpponentLeft, isKo, isDraw) {
+        if (endingStarted) return;
+        endingStarted = true;
+        isMatchEnded = true;
+        clearInterval(timerTimer);
+        clearInterval(roomGameSyncTimer);
+        document.querySelectorAll('.pixel-answer-row, .arcade-btn').forEach(b => b.disabled = true);
+        const kind = isSurrendered ? 'forfeit'
+            : isDraw ? 'draw'
+            : isWon ? (isKo ? 'ko-win' : 'win')
+            : (isKo ? 'ko-lose' : 'lose');
+        ArenaFX.outro(kind, () => {
+            showResult(isWon, isSurrendered, isOpponentLeft, isKo, isDraw);
+            if (isWon) ArenaFX.confetti(result);
+        });
+    }
+
+    function showResult(isWon, isSurrendered, isOpponentLeft, isKo, isDraw) {
         isMatchEnded = true;
         clearInterval(timerTimer);
         clearInterval(roomGameSyncTimer);

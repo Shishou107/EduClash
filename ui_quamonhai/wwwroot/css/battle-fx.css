@@ -1,0 +1,242 @@
+/* ==========================================================================
+   HIỆU ỨNG TRẬN ĐẤU — pháp sư pixel, HUD đối kháng, phép thuật, mở màn/kết thúc
+   ========================================================================== */
+
+.fx-stage { height: 320px; }
+
+/* Mây trôi */
+.fx-cloud {
+    position: absolute;
+    height: 14px;
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 8px -8px 0 rgba(255, 255, 255, 0.85), 22px -8px 0 rgba(255, 255, 255, 0.85), 30px 0 0 rgba(255, 255, 255, 0.85);
+    z-index: 1;
+}
+.fx-cloud.c1 { top: 70px; width: 40px; left: -60px; animation: cloud 38s linear infinite; }
+.fx-cloud.c2 { top: 110px; width: 28px; left: -60px; animation: cloud 52s linear -20s infinite; opacity: 0.7; }
+.fx-cloud.c3 { top: 92px; width: 34px; left: -60px; animation: cloud 45s linear -34s infinite; opacity: 0.8; }
+@keyframes cloud { to { transform: translateX(1100px); } }
+
+/* ---------- HUD đối kháng trên cùng ---------- */
+.fx-hud {
+    position: absolute;
+    inset: 10px 12px auto;
+    z-index: 8;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+}
+.fx-hud__side { display: grid; gap: 3px; min-width: 0; }
+.fx-hud__side.is-right { justify-items: end; text-align: right; }
+.fx-hud__name { display: flex; justify-content: space-between; gap: 8px; width: 100%; }
+.fx-hud__side.is-right .fx-hud__name { flex-direction: row-reverse; }
+.fx-hud .fighter-tag-title { font-size: 0.72rem; color: #FFFFFF; text-shadow: 2px 2px 0 #0b2545; }
+.fx-hud .fighter-hp { font-size: 0.66rem; text-shadow: 2px 2px 0 #0b2545; }
+.fx-bar {
+    position: relative;
+    width: 100%;
+    height: 16px;
+    background: #1F2937;
+    border: 3px solid #0b2545;
+    box-shadow: 0 0 0 2px #F1D302;
+    overflow: hidden;
+}
+.fx-hud__side.is-right .fx-bar__ghost, .fx-hud__side.is-right .pixel-health-bar-fill { transform-origin: right; }
+.fx-bar__ghost, .fx-bar .pixel-health-bar-fill {
+    position: absolute;
+    inset: 0;
+    transform-origin: left;
+}
+.fx-bar__ghost { background: #FFFFFF; transition: transform 0.7s cubic-bezier(.16, 1, .3, 1) 0.35s; }
+.fx-bar .pixel-health-bar-fill { transition: transform 0.18s steps(3, end); background-image: linear-gradient(180deg, rgba(255,255,255,.35) 0 30%, transparent 30%); }
+.fx-hud__side.is-danger .fx-bar { animation: danger 0.5s steps(2) infinite; }
+@keyframes danger { 50% { box-shadow: 0 0 0 2px #EF4444; } }
+.fx-hud__vs { font-family: var(--font-pixel); font-size: 1.2rem; color: #F1D302; text-shadow: 3px 3px 0 #7F1D1D, -1px -1px 0 #0b2545; }
+
+/* Thanh thời gian cháy dần dưới câu hỏi */
+.fx-burn { height: 8px; margin-top: 8px; background: #0b2545; border: 2px solid #457b9d; border-radius: 2px; overflow: hidden; }
+.fx-burn__fill {
+    height: 100%;
+    background: linear-gradient(90deg, #F59E0B, #F1D302);
+    transform-origin: left;
+    transition: transform 1s linear, background 0.2s;
+}
+.fx-burn.is-low .fx-burn__fill { background: linear-gradient(90deg, #B91C1C, #EF4444); animation: blink 0.5s steps(2) infinite; }
+
+/* ---------- Pháp sư ---------- */
+.wizard {
+    --dir: 1;
+    position: absolute;
+    bottom: 33px;
+    width: 96px;
+    height: 120px;
+    z-index: 5;
+}
+.wizard--p1 { left: 15%; }
+.wizard--p2 { right: 15%; --dir: -1; }
+.wizard__body { width: 100%; height: 100%; transform: scaleX(var(--dir)); }
+.wizard__body svg { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+.wizard::after {
+    content: "";
+    position: absolute;
+    left: 15%;
+    right: 15%;
+    bottom: -4px;
+    height: 6px;
+    background: rgba(0, 0, 0, 0.28);
+    border-radius: 50%;
+    z-index: -1;
+}
+.wz-orb { animation: orb-glow 1.2s steps(2) infinite; }
+@keyframes orb-glow { 50% { opacity: 0.55; } }
+
+.wizard.is-idle .wizard__body { animation: idle 0.9s steps(2) infinite; }
+@keyframes idle { 50% { transform: scaleX(var(--dir)) translateY(-3px); } }
+
+.wizard.is-cast .wizard__body { animation: cast 0.32s steps(4, end); }
+@keyframes cast {
+    0% { transform: scaleX(var(--dir)) translateX(0); }
+    40% { transform: scaleX(var(--dir)) translateX(10px) translateY(-6px); filter: drop-shadow(0 0 8px #FFF59D); }
+    100% { transform: scaleX(var(--dir)) translateX(0); }
+}
+.wizard.is-hit { animation: knock 0.42s steps(6, end); }
+.wizard.is-hit .wizard__body { animation: hitflash 0.42s steps(2, end) 3; }
+@keyframes knock {
+    0% { transform: translateX(0); }
+    30% { transform: translateX(calc(var(--dir) * -22px)); }
+    100% { transform: translateX(0); }
+}
+@keyframes hitflash { 50% { filter: brightness(4) saturate(0); } }
+
+.wizard.is-ko { animation: ko 0.7s steps(7, end) forwards; }
+@keyframes ko {
+    0% { transform: none; }
+    30% { transform: translate(calc(var(--dir) * -18px), -30px) rotate(calc(var(--dir) * -20deg)); }
+    100% { transform: translate(calc(var(--dir) * -30px), 26px) rotate(calc(var(--dir) * -90deg)); opacity: 0.8; filter: grayscale(0.6); }
+}
+.wizard.is-win { animation: win 0.5s steps(4, end) 3; }
+@keyframes win { 50% { transform: translateY(-26px); } }
+
+/* Số sát thương to hơn */
+.fx-stage .floating-damage-popup {
+    z-index: 9;
+    top: auto;
+    bottom: 165px;
+    font-size: 1.9rem;
+    color: #FFF;
+    text-shadow: 3px 3px 0 #B91C1C, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+    animation: dmg 0.8s steps(8, end) forwards;
+}
+.fx-stage #damagePop1 { left: 15%; width: 96px; right: auto; }
+.fx-stage #damagePop2 { right: 15%; width: 96px; left: auto; }
+@keyframes dmg {
+    0% { opacity: 0; transform: translateY(10px) scale(2); }
+    20% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-40px) scale(1); }
+}
+
+/* ---------- Phép thuật & hạt ---------- */
+.fx-layer { position: absolute; inset: 0; z-index: 7; pointer-events: none; overflow: hidden; }
+.fx-orb {
+    position: absolute;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(circle at 40% 35%, #FFFFFF, var(--c) 45%, transparent 72%);
+    box-shadow: 0 0 18px 6px var(--c);
+    transform: translate(-50%, -50%);
+}
+.fx-orb span { font: 800 0.8rem/1 var(--font); color: #0b2545; }
+.fx-orb.is-power { width: 46px; height: 46px; box-shadow: 0 0 28px 10px var(--c), 0 0 0 3px #F5B70A; }
+.fx-trail, .fx-spark { position: absolute; width: 8px; height: 8px; transform: translate(-50%, -50%); }
+.fx-smoke { position: absolute; width: 14px; height: 14px; background: #94A3B8; transform: translate(-50%, -50%); }
+.fx-flash { position: absolute; inset: 0; }
+.fx-crit {
+    position: absolute;
+    font-family: var(--font-pixel);
+    font-size: 1.6rem;
+    color: #F5B70A;
+    text-shadow: 3px 3px 0 #7F1D1D, -2px -2px 0 #000;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+}
+
+/* COMBO */
+.fx-combo {
+    position: absolute;
+    left: 50%;
+    top: 62px;
+    z-index: 9;
+    font-family: var(--font-pixel);
+    font-size: 1rem;
+    color: #FFFFFF;
+    text-shadow: 3px 3px 0 #0b2545;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    white-space: nowrap;
+}
+.fx-combo b { color: #F1D302; font-size: 1.6rem; }
+.fx-combo.is-show { animation: combo 1.4s steps(10, end) forwards; }
+.fx-combo.is-hot b { color: #FB923C; text-shadow: 0 0 10px #F97316, 3px 3px 0 #7F1D1D; }
+@keyframes combo {
+    0% { opacity: 0; transform: translateX(-50%) scale(2.4) rotate(-6deg); }
+    15% { opacity: 1; transform: translateX(-50%) scale(1) rotate(-6deg); }
+    80% { opacity: 1; transform: translateX(-50%) scale(1) rotate(-6deg); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-14px) scale(1) rotate(-6deg); }
+}
+
+/* ---------- Chữ lớn mở màn / kết thúc ---------- */
+.fx-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 15;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-pixel);
+    font-size: clamp(3rem, 12vw, 6.5rem);
+    color: #FFFFFF;
+    text-shadow: 6px 6px 0 #0b2545, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000;
+    pointer-events: none;
+    opacity: 0;
+}
+.fx-overlay.is-show { animation: pop-word 0.5s steps(5, end) forwards; background: rgba(11, 37, 69, 0.35); }
+.fx-overlay.is-fight { color: #F1D302; text-shadow: 6px 6px 0 #B91C1C, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000; }
+.fx-overlay.is-end { animation: pop-end 1.9s steps(12, end) forwards; background: rgba(11, 37, 69, 0.5); }
+.fx-overlay.is-win { color: #F1D302; }
+.fx-overlay.is-lose { color: #F87171; }
+.fx-overlay.is-draw { color: #E2E8F0; }
+@keyframes pop-word {
+    0% { opacity: 0; transform: scale(3); }
+    40% { opacity: 1; transform: scale(0.9); }
+    100% { opacity: 1; transform: scale(1); }
+}
+@keyframes pop-end {
+    0% { opacity: 0; transform: scale(4) rotate(-8deg); }
+    15% { opacity: 1; transform: scale(1) rotate(-4deg); }
+    85% { opacity: 1; transform: scale(1.05) rotate(-4deg); }
+    100% { opacity: 0; transform: scale(1.05) rotate(-4deg); }
+}
+
+/* Pháo hoa pixel ở màn kết quả */
+.match-result { position: relative; overflow: hidden; }
+.fx-confetti { position: absolute; top: 0; width: 8px; height: 8px; pointer-events: none; }
+
+@media (max-width: 760px) {
+    .fx-stage { height: 250px; }
+    .wizard { width: 64px; height: 80px; }
+    .wizard--p1, .fx-stage #damagePop1 { left: 8%; }
+    .wizard--p2, .fx-stage #damagePop2 { right: 8%; }
+    .fx-stage #damagePop1, .fx-stage #damagePop2 { width: 64px; bottom: 120px; }
+    .fx-hud .fighter-tag-title { font-size: 0.6rem; }
+    .fx-hud__vs { font-size: 0.9rem; }
+    .fx-bar { height: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fx-cloud { animation: none; }
+    .fx-overlay.is-show, .fx-overlay.is-end { opacity: 1; animation: none; }
+}
