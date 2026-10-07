@@ -1,211 +1,151 @@
 @{
-    ViewData["Title"] = "Import Đề Cương & Bộ Đề — EduClash";
+    ViewData["Title"] = "Tải đề lên · EduClash";
     var subjects = ViewBag.Subjects as List<SubjectViewModel> ?? new List<SubjectViewModel>();
     string? errorMessage = ViewBag.ErrorMessage as string;
 }
 
-<div class="edu-breadcrumbs-strip" style="background-color: #0F1D33; padding: 12px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-    <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 10px; font-size: 0.95rem;">
-        <a href="/" style="color: #FFFFFF; font-weight: 500; text-decoration: none;">Trang chủ</a>
-        <span style="color: #94A3B8;">&gt;</span>
-        <span style="color: #38BDF8; font-weight: 600;">Import đề cương & bộ đề</span>
-    </div>
-</div>
+<div class="wrap wrap--form">
+    <header class="page-head">
+        <ol class="crumbs" aria-label="Vị trí">
+            <li><a href="/">Trang chủ</a></li>
+            <li><a href="/Outline/MyOutlines">Đề tôi đã đăng</a></li>
+            <li aria-current="page">Tải đề lên</li>
+        </ol>
+        <h1>Tải đề lên</h1>
+        <p class="page-head__lede">Đề cương được giữ nguyên bố cục như trang sách. Bộ trắc nghiệm được tách thành từng câu A, B, C, D để luyện và mang vào đấu trường.</p>
+    </header>
 
-<div class="container py-5" style="max-width: 860px;">
-    <div class="card shadow-sm border-0 p-4 p-md-5" style="border-radius: 16px; background: #FFFFFF;">
-        <!-- Header -->
-        <div class="text-center mb-4">
-            <div class="d-inline-flex p-3 rounded-circle mb-2" style="background: rgba(16, 185, 129, 0.1);">
-                <span style="font-size: 2.2rem;">📤</span>
-            </div>
-            <h2 class="h3 fw-bold text-dark m-0">Import Đề Cương / Bộ Đề Thi (DOCX / PDF)</h2>
-            <p class="text-muted mt-2" style="max-width: 650px; margin: 0 auto;">
-                Tải lên file Microsoft Word (.docx) hoặc Adobe PDF (.pdf) của bạn để hệ thống tự động bóc tách thành <strong>đề cương sổ xuống</strong> hoặc <strong>bộ đề trắc nghiệm trực tuyến</strong>.
-            </p>
-        </div>
+    <form method="post" action="/Outline/Import" enctype="multipart/form-data" id="importForm" class="panel panel--pad mt-3">
+        @Html.AntiForgeryToken()
 
         @if (!string.IsNullOrEmpty(errorMessage))
         {
-            <div class="alert alert-danger py-3 px-4 rounded-3 d-flex align-items-center gap-2 mb-4" role="alert">
-                <span>⚠️</span>
-                <div>@errorMessage</div>
+            <div class="flash flash--err mt-0 mb-4" role="alert">
+                <svg class="icon" aria-hidden="true"><use href="#i-alert" /></svg><span>@errorMessage</span>
             </div>
         }
 
-        <form method="post" action="/Outline/Import" enctype="multipart/form-data" id="importForm">
-            @Html.AntiForgeryToken()
-
-            <div class="row g-4">
-                <!-- 1. Tiêu đề tài liệu -->
-                <div class="col-12">
-                    <label class="form-label fw-bold text-dark">Tiêu Đề Tài Liệu <span class="text-danger">*</span></label>
-                    <input type="text" name="title" class="form-control form-control-lg fs-6" 
-                           placeholder="Ví dụ: Đề cương chi tiết Hệ Quản Trị CSDL - Chương 1 & 2..." required />
+        <div class="form-grid">
+            <fieldset class="field span-2">
+                <legend class="label mb-1">Loại tài liệu <span class="req" aria-hidden="true">*</span></legend>
+                <div class="mode-pick">
+                    <label>
+                        <input type="radio" name="mode" value="TheoryOutline" checked />
+                        <strong><svg class="icon" aria-hidden="true"><use href="#i-book" /></svg>Đề cương lý thuyết</strong>
+                        <span>Giữ nguyên file Word hoặc PDF, đọc như trang sách.</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="mode" value="StructuredQuiz" />
+                        <strong><svg class="icon" aria-hidden="true"><use href="#i-quiz" /></svg>Bộ trắc nghiệm</strong>
+                        <span>Tách câu hỏi và phương án A, B, C, D để làm bài online.</span>
+                    </label>
                 </div>
+            </fieldset>
 
-                <!-- 2. Chọn Môn học -->
-                <div class="col-md-6">
-                    <label class="form-label fw-bold text-dark">Môn Học <span class="text-danger">*</span></label>
-                    <select name="subjectId" id="subjectSelect" class="form-select py-2 fs-6" required>
-                        <option value="">-- Chọn môn học --</option>
-                        @foreach (var s in subjects)
-                        {
-                            <option value="@s.SubjectId">[@s.Code] @s.Name</option>
-                        }
-                    </select>
-                    <div class="form-text small text-muted">Hệ thống hỗ trợ tự động gắn mã môn học cho tài liệu.</div>
-                </div>
-
-                <!-- 3. Chọn Loại Tài Liệu (Mode: TheoryOutline vs StructuredQuiz) -->
-                <div class="col-md-6">
-                    <label class="form-label fw-bold text-dark">Loại Tài Liệu <span class="text-danger">*</span></label>
-                    <select name="mode" id="docTypeSelect" class="form-select py-2 fs-6 fw-semibold text-primary" required>
-                        <option value="TheoryOutline" selected>📖 Đề cương lý thuyết (Study)</option>
-                        <option value="StructuredQuiz">📝 Đề cương trắc nghiệm (Quizzed)</option>
-                    </select>
-                    <div class="form-text small" id="docTypeHint" style="color: #059669;">
-                        📖 Lưu nguyên bản file PDF / Word (.docx) và hiển thị theo chuẩn trang Studocu / Word Online.
-                    </div>
-                </div>
-
-                <!-- 4. Độ khó -->
-                <div class="col-md-6">
-                    <label class="form-label fw-bold text-dark">Độ Khó</label>
-                    <select name="difficultyLevel" class="form-select py-2 fs-6">
-                        <option value="Easy">Dễ (Cơ bản)</option>
-                        <option value="Medium" selected>Trung bình (Chuẩn đề thi)</option>
-                        <option value="Hard">Nâng cao (Chuyên sâu)</option>
-                    </select>
-                </div>
-
-                <!-- 5. Thêm thẻ tag -->
-                <div class="col-md-6">
-                    <label class="form-label fw-bold text-dark">Thêm Tag (Tùy chọn)</label>
-                    <input type="text" name="tags" id="tagsInput" class="form-control py-2 fs-6" 
-                           placeholder="Ví dụ: #GiuaKy, #CSDL, #HUIT (phân tách bởi dấu phẩy)" />
-                    <div class="form-text small text-muted">Hệ thống sẽ tự động thêm tag tương ứng (#lythuyet hoặc #tracnghiem).</div>
-                </div>
-
-                <!-- 6. Mô tả tóm tắt -->
-                <div class="col-12">
-                    <label class="form-label fw-bold text-dark">Mô Tả Tóm Tắt (Tùy chọn)</label>
-                    <textarea name="description" class="form-control" rows="2" 
-                              placeholder="Mô tả ngắn gọn về tài liệu này (phạm vi kiến thức, đối tượng ôn thi...)..."></textarea>
-                </div>
-
-                <!-- 7. Khung chọn file DOCX / PDF -->
-                <div class="col-12">
-                    <label class="form-label fw-bold text-dark">Đính Kèm File (.docx hoặc .pdf) <span class="text-danger">*</span></label>
-                    <div class="p-4 border border-2 rounded-3 text-center" id="dropZone" 
-                         style="border-style: dashed !important; border-color: #CBD5E1 !important; background-color: #F8FAFC; cursor: pointer; transition: all 0.2s;">
-                        <input type="file" name="file" id="fileInput" class="d-none" accept=".docx,.pdf" required />
-                        <div id="dropZonePrompt">
-                            <div class="fs-1 mb-2">📁</div>
-                            <div class="fw-bold text-dark mb-1">Kéo thả file vào đây hoặc <span class="text-success text-decoration-underline">nhấp để chọn</span></div>
-                            <div class="text-muted small">Chấp nhận Microsoft Word (.docx) hoặc Adobe PDF (.pdf), dung lượng tối đa 20MB.</div>
-                        </div>
-                        <div id="dropZoneSelected" class="d-none text-success fw-bold">
-                            <div class="fs-2 mb-1">✅</div>
-                            <div id="selectedFileName" class="fs-6"></div>
-                            <div id="selectedFileSize" class="small text-muted fw-normal"></div>
-                            <button type="button" class="btn btn-sm btn-outline-secondary mt-2" id="btnChangeFile">Đổi file khác</button>
-                        </div>
-                    </div>
-                </div>
+            <div class="field span-2">
+                <label for="impTitle">Tiêu đề <span class="req" aria-hidden="true">*</span></label>
+                <input id="impTitle" type="text" name="title" class="form-control" placeholder="Ví dụ: Đề cương Hệ quản trị CSDL, chương 1 và 2" required />
             </div>
 
-            <!-- Footer Buttons -->
-            <div class="d-flex justify-content-end align-items-center gap-3 mt-5 pt-3 border-top">
-                <a href="/" class="btn btn-light px-4 py-2 border">Hủy bỏ</a>
-                <button type="submit" id="btnSubmitUpload" class="btn btn-success px-4 py-2 fw-bold shadow-sm" style="border-radius: 8px;">
-                    <span id="btnSubmitText">🚀 Tiến Hành Tải Lên &amp; Xử Lý</span>
-                    <span id="btnSubmitSpinner" class="spinner-border spinner-border-sm d-none ms-1" role="status" aria-hidden="true"></span>
-                </button>
+            <div class="field">
+                <label for="subjectSelect">Môn học <span class="req" aria-hidden="true">*</span></label>
+                <select name="subjectId" id="subjectSelect" class="form-select" required>
+                    <option value="">Chọn môn học</option>
+                    @foreach (var s in subjects)
+                    {
+                        <option value="@s.SubjectId">@s.Code · @s.Name</option>
+                    }
+                </select>
             </div>
-        </form>
-    </div>
+
+            <div class="field">
+                <label for="impDifficulty">Độ khó</label>
+                <select id="impDifficulty" name="difficultyLevel" class="form-select">
+                    <option value="Easy">Dễ, kiến thức cơ bản</option>
+                    <option value="Medium" selected>Vừa, sát đề thi</option>
+                    <option value="Hard">Khó, nâng cao</option>
+                </select>
+            </div>
+
+            <div class="field span-2">
+                <label for="tagsInput">Tag <span class="field-hint d-inline">(không bắt buộc)</span></label>
+                <input type="text" name="tags" id="tagsInput" class="form-control" placeholder="GiuaKy, CSDL, HUIT" aria-describedby="tagsHint" />
+                <p class="field-hint" id="tagsHint">Ngăn cách bằng dấu phẩy. Hệ thống tự thêm tag #lythuyet hoặc #tracnghiem.</p>
+            </div>
+
+            <div class="field span-2">
+                <label for="impDesc">Mô tả ngắn <span class="field-hint d-inline">(không bắt buộc)</span></label>
+                <textarea id="impDesc" name="description" class="form-control" rows="2" placeholder="Phạm vi kiến thức, dành cho kỳ thi nào…"></textarea>
+            </div>
+
+            <div class="field span-2">
+                <span class="label" id="fileLabel">File đính kèm <span class="req" aria-hidden="true">*</span></span>
+                <label class="dropzone" id="dropZone" for="fileInput">
+                    <input type="file" name="file" id="fileInput" class="visually-hidden" accept=".docx,.pdf" aria-labelledby="fileLabel" aria-describedby="fileHint" required />
+                    <svg class="icon" aria-hidden="true"><use href="#i-upload" id="dropIcon" /></svg>
+                    <strong id="dropTitle">Kéo thả file vào đây hoặc bấm để chọn</strong>
+                    <p id="fileHint">Word (.docx) hoặc PDF (.pdf), tối đa 20 MB.</p>
+                </label>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="/Outline/MyOutlines" class="btn-arcade">Huỷ</a>
+            <button type="submit" id="btnSubmitUpload" class="btn-arcade btn-arcade--green">
+                <svg class="icon" aria-hidden="true"><use href="#i-upload" /></svg><span id="btnSubmitText">Tải lên và xử lý</span>
+                <span id="btnSubmitSpinner" class="spinner-border spinner-border-sm d-none" aria-hidden="true"></span>
+            </button>
+        </div>
+    </form>
 </div>
 
 @section Scripts {
 <script>
-    const docTypeSelect = document.getElementById('docTypeSelect');
-    const docTypeHint = document.getElementById('docTypeHint');
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
-    const dropZonePrompt = document.getElementById('dropZonePrompt');
-    const dropZoneSelected = document.getElementById('dropZoneSelected');
-    const selectedFileName = document.getElementById('selectedFileName');
-    const selectedFileSize = document.getElementById('selectedFileSize');
-    const btnChangeFile = document.getElementById('btnChangeFile');
-    const importForm = document.getElementById('importForm');
-    const btnSubmitUpload = document.getElementById('btnSubmitUpload');
-    const btnSubmitText = document.getElementById('btnSubmitText');
-    const btnSubmitSpinner = document.getElementById('btnSubmitSpinner');
+    (function () {
+        const MAX = 20 * 1024 * 1024;
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const dropTitle = document.getElementById('dropTitle');
+        const fileHint = document.getElementById('fileHint');
+        const dropIcon = document.getElementById('dropIcon');
+        const form = document.getElementById('importForm');
 
-    // Chuyển đổi mô tả theo loại tài liệu
-    docTypeSelect.addEventListener('change', function () {
-        if (this.value === 'StructuredQuiz') {
-            docTypeHint.innerHTML = '📝 Tự động bóc tách các câu hỏi &amp; phương án A, B, C, D vào hệ thống thi online Quizzed.';
-            docTypeHint.style.color = '#2563EB';
-            this.className = 'form-select py-2 fs-6 fw-semibold text-primary';
-        } else {
-            docTypeHint.innerHTML = '📖 Lưu nguyên bản file PDF / Word (.docx) và hiển thị theo chuẩn trang Studocu / Word Online.';
-            docTypeHint.style.color = '#059669';
-            this.className = 'form-select py-2 fs-6 fw-semibold text-success';
+        function show() {
+            const f = fileInput.files && fileInput.files[0];
+            if (!f) {
+                dropZone.classList.remove('has-file');
+                dropTitle.textContent = 'Kéo thả file vào đây hoặc bấm để chọn';
+                fileHint.textContent = 'Word (.docx) hoặc PDF (.pdf), tối đa 20 MB.';
+                dropIcon.setAttribute('href', '#i-upload');
+                return;
+            }
+            const okType = /\.(docx|pdf)$/i.test(f.name);
+            if (!okType || f.size > MAX) {
+                fileInput.value = '';
+                EC.toast(!okType ? 'Chỉ nhận file .docx hoặc .pdf.' : 'File lớn hơn 20 MB, hãy nén hoặc tách nhỏ.', 'err');
+                return show();
+            }
+            dropZone.classList.add('has-file');
+            dropTitle.textContent = f.name;
+            fileHint.textContent = `${(f.size / 1024).toFixed(0)} KB · bấm để đổi file khác`;
+            dropIcon.setAttribute('href', '#i-check');
         }
-    });
 
-    // Kéo thả và chọn file
-    dropZone.addEventListener('click', (e) => {
-        if (e.target !== btnChangeFile) fileInput.click();
-    });
+        fileInput.addEventListener('change', show);
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('is-over'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('is-over'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('is-over');
+            if (e.dataTransfer.files.length) { fileInput.files = e.dataTransfer.files; show(); }
+        });
 
-    btnChangeFile.addEventListener('click', (e) => {
-        e.stopPropagation();
-        fileInput.click();
-    });
-
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.style.borderColor = '#10B981';
-        dropZone.style.backgroundColor = '#ECFDF5';
-    });
-
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.style.borderColor = '#CBD5E1';
-        dropZone.style.backgroundColor = '#F8FAFC';
-    });
-
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.style.borderColor = '#CBD5E1';
-        dropZone.style.backgroundColor = '#F8FAFC';
-        if (e.dataTransfer.files.length > 0) {
-            fileInput.files = e.dataTransfer.files;
-            updateFileDisplay();
-        }
-    });
-
-    fileInput.addEventListener('change', updateFileDisplay);
-
-    function updateFileDisplay() {
-        if (fileInput.files && fileInput.files.length > 0) {
-            const f = fileInput.files[0];
-            selectedFileName.innerText = f.name;
-            selectedFileSize.innerText = `Dung lượng: ${(f.size / 1024).toFixed(1)} KB`;
-            dropZonePrompt.classList.add('d-none');
-            dropZoneSelected.classList.remove('d-none');
-        } else {
-            dropZonePrompt.classList.remove('d-none');
-            dropZoneSelected.classList.add('d-none');
-        }
-    }
-
-    importForm.addEventListener('submit', function () {
-        btnSubmitUpload.disabled = true;
-        btnSubmitText.innerText = "Đang bóc tách & tải lên...";
-        btnSubmitSpinner.classList.remove('d-none');
-    });
+        form.addEventListener('submit', () => {
+            const btn = document.getElementById('btnSubmitUpload');
+            btn.disabled = true;
+            document.getElementById('btnSubmitText').textContent = 'Đang tải lên và xử lý…';
+            document.getElementById('btnSubmitSpinner').classList.remove('d-none');
+        });
+    })();
 </script>
 }

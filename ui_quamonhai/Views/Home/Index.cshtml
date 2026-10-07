@@ -1,188 +1,193 @@
 @model List<ContentItemViewModel>
 @{
-    ViewData["Title"] = "Trang Chủ — Ôn Thi & Đề Cương Đại Học";
+    ViewData["Title"] = "EduClash · Ôn đề cương, đấu trí 1 vs 1";
     var subjects = ViewBag.Subjects as List<SubjectViewModel> ?? new List<SubjectViewModel>();
     int? selectedSubjectId = ViewBag.SelectedSubjectId as int?;
     var selectedSubject = ViewBag.SelectedSubject as SubjectViewModel;
     string searchKeyword = ViewBag.SearchKeyword as string ?? "";
+    var topPlayers = ViewBag.TopPlayers as List<LeaderboardItemViewModel> ?? new List<LeaderboardItemViewModel>();
+    var me = ViewBag.CurrentUser as UserProfileViewModel;
+    bool filtering = selectedSubject != null || !string.IsNullOrWhiteSpace(searchKeyword);
 }
 
-<!-- Breadcrumbs Strip (Dark Navy #0F1D33) -->
-<div class="edu-breadcrumbs-strip" style="background-color: #0F1D33; padding: 12px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-    <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 10px; font-size: 0.95rem;">
-        <a href="/" style="color: #FFFFFF; font-weight: 500; text-decoration: none;">Trang chủ</a>
-        <span style="color: #94A3B8;">&gt;</span>
-        <a href="/" style="color: #FFFFFF; font-weight: 500; text-decoration: none;">Đại Học</a>
-        @if (selectedSubject != null)
-        {
-            <span style="color: #94A3B8;">&gt;</span>
-            <span style="color: #38BDF8; font-weight: 600;">@selectedSubject.Name</span>
-        }
-    </div>
-</div>
-
-<div class="container py-4" style="max-width: 1200px;">
-
-
-    <!-- SECTION 1: Các môn Đại Học (Horizontal Scroll Square Cards) -->
-    <section class="mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <div class="d-flex align-items-center gap-2">
-                <span style="display: inline-block; width: 4px; height: 22px; background: #10B981; border-radius: 2px;"></span>
-                <h2 class="h4 fw-bold m-0 text-dark">Đề Cương Lý Thuyết các môn Đại Học</h2>
+@if (!filtering)
+{
+    <section class="hero" aria-labelledby="heroTitle">
+        <div class="wrap hero__inner">
+            <div>
+                <h1 id="heroTitle">Ôn đề cương xong,<br /><em>vào đấu trường</em> so tài.</h1>
+                <p class="hero__lede">Đọc đề cương các môn đại học, luyện trắc nghiệm, rồi thách đấu 1 vs 1 với bạn bè. Trả lời đúng là bắn trúng, ai còn nhiều máu hơn thì thắng và leo hạng Elo.</p>
+                <div class="hero__cta">
+                    <a href="/Home/Arena" class="btn-arcade btn-arcade--gold btn-arcade--lg">
+                        <svg class="icon" aria-hidden="true"><use href="#i-swords" /></svg>Vào đấu ngay
+                    </a>
+                    <a href="#de-cuong" class="btn-arcade btn-arcade--ghost btn-arcade--lg">
+                        <svg class="icon" aria-hidden="true"><use href="#i-book" /></svg>Xem đề cương
+                    </a>
+                </div>
+                <ol class="hero__steps" aria-label="Cách chơi">
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-book" /></svg>Đọc đề cương</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-quiz" /></svg>Luyện trắc nghiệm</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-swords" /></svg>Đấu 1 vs 1, 200 HP</li>
+                </ol>
             </div>
-            <div class="d-flex align-items-center gap-3">
-                @if (selectedSubjectId != null)
+
+            <aside class="board" aria-labelledby="boardTitle">
+                <div class="board__head">
+                    <h2 class="board__title" id="boardTitle">Cao thủ đấu trường</h2>
+                    <span class="board__live">TOP 3</span>
+                </div>
+                @if (me != null)
                 {
-                    <a href="/" class="btn btn-sm btn-outline-secondary">✕ Xem tất cả đề</a>
+                    <dl class="me-strip m-0" aria-label="Chỉ số của bạn">
+                        <div><dt>Elo của bạn</dt><dd class="is-elo"><span data-count>@me.Rating</span></dd></div>
+                        <div><dt>Xu</dt><dd class="is-coin"><span data-count>@me.Coins</span></dd></div>
+                        <div><dt>Thắng / Thua</dt><dd>@me.Wins/@me.Losses</dd></div>
+                    </dl>
                 }
-                <a href="/Home/Subjects" class="text-success fw-bold text-decoration-none">
-                    Xem tất cả các môn &rarr;
-                </a>
-            </div>
+                @if (topPlayers.Count == 0)
+                {
+                    <p class="board__empty">Chưa ai lên bảng. Thắng trận đầu tiên để ghi tên mình ở đây.</p>
+                }
+                else
+                {
+                    <ol class="board__list">
+                        @foreach (var p in topPlayers)
+                        {
+                            <li class="board__row">
+                                <span class="board__rank">#@p.RankPosition</span>
+                                <span class="avatar">
+                                    @if (!string.IsNullOrEmpty(p.AvatarUrl))
+                                    {
+                                        <img src="@p.AvatarUrl" alt="" />
+                                    }
+                                    else
+                                    {
+                                        @(string.IsNullOrEmpty(p.DisplayName) ? "?" : p.DisplayName.Substring(0, 1).ToUpper())
+                                    }
+                                </span>
+                                <span class="board__name">@p.DisplayName<small>Hạng @p.RankTier · @p.Wins trận thắng</small></span>
+                                <span class="board__score"><span data-count>@p.Rating</span><span class="visually-hidden"> Elo</span></span>
+                            </li>
+                        }
+                    </ol>
+                }
+                <div class="board__foot">
+                    <span>@(me == null ? "Đăng ký để nhận 50 xu" : "Leo hạng bằng mỗi trận thắng")</span>
+                    <a href="/Home/Leaderboard">Bảng xếp hạng →</a>
+                </div>
+            </aside>
         </div>
+    </section>
+}
 
-        @if (subjects.Count == 0)
-        {
-            <div class="text-muted py-3 px-1 small">Chưa có môn học nào trong hệ thống.</div>
-        }
-        else
-        {
-            <!-- Khung cuộn ngang mượt mà -->
-            <div class="d-flex gap-3 overflow-auto pb-3" style="scrollbar-width: thin;">
-                @foreach (var sub in subjects)
-                {
-                    bool isSelected = selectedSubjectId == sub.SubjectId;
-                    <div style="flex: 0 0 170px;">
-                        <a href="@(isSelected ? "/" : $"/?subjectId={sub.SubjectId}")" class="text-decoration-none">
-                            <div class="card h-100 shadow-sm transition-all" 
-                                 style="border-radius: 12px; border: @(isSelected ? "2px solid #059669" : "1px solid #E2E8F0"); background: @(isSelected ? "#F0FDF4" : "#FFFFFF");">
-                                <div class="p-3 d-flex flex-column justify-content-between" style="min-height: 200px;">
-                                    <h6 class="fw-bold text-dark text-truncate-2 m-0" style="height: 2.6em; line-height: 1.3;" title="@sub.Name">
-                                        @sub.Name
-                                    </h6>
-                                    
-                                    <!-- Book cover mockup -->
-                                    <div class="rounded d-flex flex-column align-items-center justify-content-center text-center p-2 my-2" 
-                                         style="background: @sub.ThemeColor; color: @sub.TextColor; height: 85px;">
-                                        <span class="badge bg-light text-dark fw-bold mb-1" style="font-size: 0.65rem;">@sub.Code</span>
-                                        <small class="text-truncate px-1 fw-bold" style="font-size: 0.72rem; max-width: 100%;">@sub.Name</small>
-                                    </div>
+<div class="wrap">
+    @if (filtering)
+    {
+        <div class="page-head">
+            <ol class="crumbs" aria-label="Vị trí">
+                <li><a href="/">Đề cương</a></li>
+                <li aria-current="page">@(selectedSubject?.Name ?? "Kết quả tìm kiếm")</li>
+            </ol>
+        </div>
+    }
 
-                                    <div class="d-flex justify-content-between align-items-center pt-2 border-top text-muted small" style="font-size: 0.75rem;">
-                                        <span>@sub.ContentsCount đề</span>
-                                        <span class="text-success fw-bold">@(isSelected ? "✓ Đang chọn" : "Chọn môn →")</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                }
-            </div>
-        }
+    <section class="section" aria-labelledby="subjectsTitle">
+        <div class="section-head">
+            <h2 id="subjectsTitle">Chọn môn để lọc đề cương</h2>
+            <a class="link-arrow" href="/Home/Subjects">Tất cả môn học <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
+        </div>
+        @await Html.PartialAsync("_SubjectRail", subjects, new ViewDataDictionary(ViewData) { { "BaseUrl", "/" }, { "SelectedId", selectedSubjectId }, { "ShowCounts", true } })
     </section>
 
-    <!-- SECTION 2: Danh sách đề cương / đề thi -->
-    <section class="mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <div class="d-flex align-items-center gap-2">
-                <span style="display: inline-block; width: 4px; height: 22px; background: #10B981; border-radius: 2px;"></span>
-                <h2 class="h4 fw-bold m-0 text-dark">
-                    @(selectedSubject != null ? $"Đề Cương Môn: {selectedSubject.Name}" : "Đề Cương & Lý Thuyết Đại Học Nổi Bật")
-                </h2>
-            </div>
-
-            <!-- Search form -->
-            <form method="get" action="/" class="d-flex gap-2">
+    <section class="section" id="de-cuong" aria-labelledby="docsTitle">
+        <div class="section-head">
+            <h2 id="docsTitle">@(selectedSubject != null ? $"Đề cương môn {selectedSubject.Name}" : "Đề cương mới nhất")</h2>
+            <form method="get" action="/" class="search" role="search">
                 @if (selectedSubjectId != null)
                 {
                     <input type="hidden" name="subjectId" value="@selectedSubjectId" />
                 }
-                <div class="input-group">
-                    <input type="text" name="search" class="form-control" 
-                           placeholder="Tìm tên đề, tag: toán, giải tích..." 
-                           value="@searchKeyword" />
-                    <button class="btn btn-outline-success" type="submit">Tìm</button>
-                    @if (!string.IsNullOrWhiteSpace(searchKeyword) || selectedSubjectId != null)
-                    {
-                        <a href="/" class="btn btn-outline-secondary">Xóa lọc</a>
-                    }
-                </div>
+                <svg class="icon" aria-hidden="true"><use href="#i-search" /></svg>
+                <label for="docSearch" class="visually-hidden">Tìm đề cương</label>
+                <input id="docSearch" type="search" name="search" placeholder="Tên đề hoặc tag, ví dụ: giải tích" value="@searchKeyword" />
+                <button type="submit">Tìm</button>
             </form>
         </div>
 
+        @if (filtering)
+        {
+            <p class="filter-note">
+                Đang lọc: @if (selectedSubject != null) { <span class="chip chip--green">@selectedSubject.Code</span> }
+                @if (!string.IsNullOrWhiteSpace(searchKeyword)) { <span class="chip">“@searchKeyword”</span> }
+                <a href="/" class="link-arrow">Bỏ lọc</a>
+            </p>
+        }
+
         @if (Model == null || Model.Count == 0)
         {
-            <div class="card p-5 text-center shadow-sm border-0" style="border-radius: 12px; background: #FFFFFF;">
-                <div style="font-size: 3.5rem;">📚</div>
-                <h4 class="fw-bold mt-2">Chưa có đề cương nào</h4>
-                <p class="text-muted">
-                    @(selectedSubject != null 
-                        ? $"Hiện chưa có tài liệu cho môn '{selectedSubject.Name}'. Bạn có thể tải lên đề mới ngay!" 
-                        : "Kho đề hiện tại chưa có đề cương mẫu. Hãy tải lên tài liệu DOCX, PDF của bạn.")
-                </p>
-                <div>
-                    <a href="/Outline/Import" class="btn btn-success fw-bold px-4 py-2 mt-2" style="border-radius: 8px;">
-                        + Tải lên đề cương mới
-                    </a>
-                </div>
+            <div class="empty">
+                <svg class="icon empty__icon" aria-hidden="true"><use href="#i-file" /></svg>
+                <h3>Chưa có đề cương nào @(selectedSubject != null ? "cho môn này" : "khớp")</h3>
+                <p>Bạn có thể là người đầu tiên tải lên. Hệ thống nhận file Word (.docx) hoặc PDF và hiển thị như một trang sách.</p>
+                <a href="/Outline/Import" class="btn-arcade btn-arcade--green">
+                    <svg class="icon" aria-hidden="true"><use href="#i-upload" /></svg>Tải đề cương lên
+                </a>
             </div>
         }
         else
         {
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <div class="doc-grid">
                 @foreach (var item in Model)
                 {
-                    <div class="col">
-                        <div class="card h-100 shadow-sm border-0" style="border-radius: 12px; transition: transform 0.2s;">
-                            <div class="card-body d-flex flex-column justify-content-between p-4">
-                                <div>
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span class="badge bg-primary-subtle text-primary fw-bold">@item.Subject.Code</span>
-                                        <span class="text-muted small">⭐ @item.StarCount lượt thích</span>
-                                    </div>
-                                    <h5 class="card-title fw-bold text-dark text-truncate-2">
-                                        <a href="/Home/Outline/@item.ContentId" class="text-dark text-decoration-none">
-                                            @item.Title
-                                        </a>
-                                    </h5>
-                                    <p class="card-text text-muted small text-truncate-3">
-                                        @(string.IsNullOrEmpty(item.Description) ? "Tài liệu tóm tắt ôn thi trắc nghiệm & lý thuyết chuyên sâu." : item.Description)
-                                    </p>
-                                </div>
-
-                                <div class="pt-3 border-top mt-3 d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; font-size: 0.75rem;">
-                                            @item.Author.DisplayName.Substring(0, Math.Min(1, item.Author.DisplayName.Length))
-                                        </div>
-                                        <span class="small text-muted">@item.Author.DisplayName</span>
-                                    </div>
-                                    <a href="/Home/Outline/@item.ContentId" class="btn btn-sm btn-outline-success fw-bold">
-                                        Xem đề &rarr;
-                                    </a>
-                                </div>
-                            </div>
+                    <article class="doc-card">
+                        <div class="doc-card__top">
+                            <span class="chip chip--code">@item.Subject.Code</span>
+                            <span class="stat-inline" title="Lượt thích"><svg class="icon" aria-hidden="true"><use href="#i-star" /></svg>@item.StarCount</span>
                         </div>
-                    </div>
+                        <h3><a href="/Home/Outline/@item.ContentId">@item.Title</a></h3>
+                        <p class="doc-card__desc">@(string.IsNullOrEmpty(item.Description) ? $"Đề cương môn {item.Subject.Name}." : item.Description)</p>
+                        <div class="doc-card__meta">
+                            <span class="doc-card__author">
+                                <span class="avatar avatar--sm" aria-hidden="true">@(string.IsNullOrEmpty(item.Author.DisplayName) ? "?" : item.Author.DisplayName.Substring(0, 1).ToUpper())</span>
+                                <span>@item.Author.DisplayName</span>
+                            </span>
+                            <span class="doc-card__go" aria-hidden="true">Đọc <svg class="icon"><use href="#i-arrow" /></svg></span>
+                        </div>
+                    </article>
                 }
             </div>
         }
     </section>
-
 </div>
 
-<style>
-    .text-truncate-2 {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-    .text-truncate-3 {
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-</style>
+@section Scripts {
+<script>
+    // Điểm trên bảng đếm từ 0 lên khi bảng "bật nguồn". Số thật đã có sẵn trong HTML,
+    // nên nếu script lỗi hoặc người dùng tắt chuyển động thì vẫn thấy đúng số.
+    (function () {
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const els = document.querySelectorAll('.hero [data-count]');
+        els.forEach((el, i) => {
+            const target = parseInt(el.textContent, 10);
+            if (!Number.isFinite(target) || target <= 0) return;
+            el.setAttribute('aria-hidden', 'true');
+            const label = document.createElement('span');
+            label.className = 'visually-hidden';
+            label.textContent = target;
+            el.after(label);
+            el.textContent = '0';
+            const delay = 850 + i * 120, dur = 900;
+            setTimeout(() => {
+                const t0 = performance.now();
+                const tick = (now) => {
+                    const p = Math.min(1, (now - t0) / dur);
+                    el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+                    if (p < 1) requestAnimationFrame(tick);
+                };
+                requestAnimationFrame(tick);
+            }, delay);
+        });
+    })();
+</script>
+}

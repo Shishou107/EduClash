@@ -1,0 +1,147 @@
+/* Trình đọc tài liệu (PDF.js / docx-preview).
+   Các !important bên dưới chỉ dùng để đè style inline mà thư viện docx-preview tự chèn. */
+
+.doc-head { padding: clamp(18px, 3vw, 28px); margin-top: 16px; }
+.doc-head__row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 16px 24px; }
+.doc-head__chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.doc-head h1 { font-size: var(--fs-2xl); margin: 0; max-width: 32ch; }
+.doc-head__desc { margin: 8px 0 0; color: var(--text-2); max-width: 70ch; }
+.doc-head__meta { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 12px; font-size: var(--fs-sm); color: var(--text-3); }
+.doc-head__meta strong { color: var(--text); }
+.doc-head__actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.viewer { margin-top: 16px; overflow: clip; }
+
+.viewer-toolbar {
+    position: sticky;
+    top: 68px;
+    z-index: 200;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+    padding: 8px 12px;
+    background: var(--ink);
+    color: var(--on-ink);
+    border-bottom: 2px solid #050C18;
+}
+@media (max-width: 860px) { .viewer-toolbar { top: 58px; } }
+
+.viewer-toolbar__group {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px;
+    background: var(--ink-2);
+    border: 1px solid var(--ink-line);
+    border-radius: 8px;
+}
+.studocu-ctrl-btn {
+    display: inline-grid;
+    place-items: center;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    color: var(--on-ink);
+    font: 700 var(--fs-xs)/1 var(--font);
+    cursor: pointer;
+}
+.studocu-ctrl-btn:hover:not(:disabled) { background: var(--ink-3); }
+.studocu-ctrl-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.studocu-ctrl-btn .icon { width: 18px; height: 18px; }
+
+.viewer-page { display: inline-flex; align-items: center; gap: 6px; padding: 0 6px; font-size: var(--fs-sm); color: var(--on-ink-2); }
+.studocu-page-input {
+    width: 48px;
+    height: 30px;
+    background: var(--ink);
+    border: 1px solid var(--ink-line);
+    color: var(--on-ink);
+    text-align: center;
+    border-radius: 6px;
+    font-family: var(--font-pixel);
+    font-size: 0.8rem;
+}
+#studocu-zoom-text { font-family: var(--font-pixel); font-size: 0.75rem; min-width: 48px; text-align: center; }
+
+/* Bàn đọc: nền xám, các trang giấy trắng */
+.studocu-workspace {
+    background: #E9EDF3;
+    min-height: 70vh;
+    padding: 32px 16px 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: auto;
+}
+.studocu-document-body { width: 100%; display: flex; flex-direction: column; align-items: center; }
+.studocu-sheets-wrapper { display: flex; flex-direction: column; align-items: center; gap: 24px; width: 100%; }
+
+.studocu-page-sheet {
+    background: #FFFFFF !important;
+    box-shadow: 0 4px 16px rgba(15, 29, 51, 0.12), 0 1px 3px rgba(15, 29, 51, 0.08) !important;
+    border-radius: 2px !important;
+    margin: 0 auto !important;
+    position: relative !important;
+    box-sizing: border-box !important;
+    transition: transform 0.15s ease-out;
+}
+.studocu-page-sheet canvas { display: block; width: 100%; height: 100%; }
+.studocu-page-badge {
+    position: absolute;
+    bottom: -22px;
+    right: 0;
+    font-family: var(--font-pixel);
+    font-size: 0.7rem;
+    color: var(--text-3);
+    user-select: none;
+}
+
+.studocu-document-body .docx-wrapper {
+    background: transparent !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 24px !important;
+    width: 100% !important;
+}
+.studocu-document-body .docx-wrapper > section.docx,
+.studocu-document-body .docx-wrapper > section {
+    background: #FFFFFF !important;
+    box-shadow: 0 4px 16px rgba(15, 29, 51, 0.12), 0 1px 3px rgba(15, 29, 51, 0.08) !important;
+    border-radius: 2px !important;
+    margin: 0 auto !important;
+    width: 820px !important;
+    max-width: 100% !important;
+    min-height: 1160px !important;
+    padding: 60px 72px !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    color: #111827 !important;
+    font-family: "Times New Roman", Times, serif !important;
+}
+@media (max-width: 640px) {
+    .studocu-document-body .docx-wrapper > section.docx,
+    .studocu-document-body .docx-wrapper > section { padding: 28px 22px !important; min-height: 0 !important; }
+}
+
+.studocu-loading-box, .studocu-fallback-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    text-align: center;
+    width: 100%;
+}
+
+#studocu-viewer-card:fullscreen { border-radius: 0; width: 100vw; height: 100vh; overflow-y: auto; }
+#studocu-viewer-card:fullscreen .viewer-toolbar { top: 0; }
+#studocu-viewer-card:fullscreen .studocu-workspace { min-height: calc(100vh - 54px); }

@@ -1,0 +1,33 @@
+@model List<SubjectViewModel>
+@{
+    var baseUrl = ViewData["BaseUrl"] as string ?? "/";
+    var selectedId = ViewData["SelectedId"] as int?;
+    var showCounts = ViewData["ShowCounts"] is bool b && b;
+    var sep = baseUrl.Contains('?') ? "&" : "?";
+}
+@if (Model.Count == 0)
+{
+    <p class="field-hint">Chưa có môn học nào trong hệ thống.</p>
+}
+else
+{
+    <div class="subject-rail subjects-scroll-track" role="list">
+        @foreach (var s in Model)
+        {
+            var on = selectedId == s.SubjectId;
+            <a role="listitem" class="subject-tile" style="--c:@s.ThemeColor; --tc:@s.TextColor"
+               href="@(on ? baseUrl : $"{baseUrl}{sep}subjectId={s.SubjectId}")"
+               aria-current="@(on ? "true" : null)"
+               title="@(on ? "Bỏ lọc môn này" : $"Lọc theo môn {s.Name}")">
+                <span class="subject-tile__cover">
+                    <span class="subject-tile__code">@s.Code</span>
+                    <span class="subject-tile__name">@s.Name</span>
+                </span>
+                <span class="subject-tile__foot">
+                    <span>@(showCounts ? $"{s.ContentsCount} đề" : "Bộ đề")</span>
+                    <b>@(on ? "Đang lọc" : "Chọn")</b>
+                </span>
+            </a>
+        }
+    </div>
+}

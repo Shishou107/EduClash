@@ -1,163 +1,108 @@
 @model List<ContentItemViewModel>
 @{
-    ViewData["Title"] = "Trắc Nghiệm Đại Học — EduClash";
+    ViewData["Title"] = "Trắc nghiệm · EduClash";
     var subjects = ViewBag.Subjects as List<SubjectViewModel> ?? new List<SubjectViewModel>();
     int? selectedSubjectId = ViewBag.SelectedSubjectId as int?;
     var selectedSubject = ViewBag.SelectedSubject as SubjectViewModel;
     string searchKeyword = ViewBag.SearchKeyword as string ?? "";
+    bool filtering = selectedSubject != null || !string.IsNullOrWhiteSpace(searchKeyword);
+    string DiffLabel(string d) => d switch { "Easy" => "Dễ", "Hard" => "Khó", _ => "Vừa" };
+    string DiffChip(string d) => d switch { "Easy" => "chip--green", "Hard" => "chip--red", _ => "chip--gold" };
 }
 
-<!-- Breadcrumbs Strip -->
-<div class="edu-breadcrumbs-strip" style="background-color: #0F1D33; padding: 12px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-    <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 10px; font-size: 0.95rem;">
-        <a href="/" style="color: #FFFFFF; font-weight: 500; text-decoration: none;">Trang chủ</a>
-        <span style="color: #94A3B8;">&gt;</span>
-        <a href="/" style="color: #FFFFFF; font-weight: 500; text-decoration: none;">Đại Học</a>
-        <span style="color: #94A3B8;">&gt;</span>
-        <span style="color: #38BDF8; font-weight: 600;">@(selectedSubject != null ? selectedSubject.Name : "Trắc Nghiệm")</span>
-    </div>
-</div>
-
-<div class="container py-4" style="max-width: 1200px;">
-
-
-    <!-- SECTION 1: Các môn (Horizontal Scroll) -->
-    <section class="mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <div class="d-flex align-items-center gap-2">
-                <span style="display: inline-block; width: 4px; height: 22px; background: #10B981; border-radius: 2px;"></span>
-                <h2 class="h4 fw-bold m-0 text-dark">Trắc Nghiệm các môn Đại Học</h2>
+<div class="wrap">
+    <header class="page-head">
+        <ol class="crumbs" aria-label="Vị trí">
+            <li><a href="/">Trang chủ</a></li>
+            @if (selectedSubject != null)
+            {
+                <li><a href="/Home/Quizzed">Trắc nghiệm</a></li>
+                <li aria-current="page">@selectedSubject.Name</li>
+            }
+            else
+            {
+                <li aria-current="page">Trắc nghiệm</li>
+            }
+        </ol>
+        <div class="page-head__row">
+            <div>
+                <h1>Luyện trắc nghiệm</h1>
+                <p class="page-head__lede">Làm thử một bộ đề trước khi mang nó vào đấu trường. Chấm điểm ngay sau khi nộp, có giải thích cho từng câu.</p>
             </div>
-            <div class="d-flex align-items-center gap-3">
-                @if (selectedSubjectId != null)
-                {
-                    <a href="/Home/Quizzed" class="btn btn-sm btn-outline-secondary">✕ Xem tất cả đề</a>
-                }
-                <a href="/Home/Subjects" class="text-success fw-bold text-decoration-none">
-                    Xem tất cả các môn &rarr;
-                </a>
-            </div>
+            <a href="/Home/Arena" class="btn-arcade btn-arcade--gold">
+                <svg class="icon" aria-hidden="true"><use href="#i-swords" /></svg>Mang đề vào đấu
+            </a>
         </div>
+    </header>
 
-        @if (subjects.Count == 0)
-        {
-            <div class="text-muted py-3 px-1 small">Chưa có môn học nào trong hệ thống.</div>
-        }
-        else
-        {
-            <div class="d-flex gap-3 overflow-auto pb-3" style="scrollbar-width: thin;">
-                @foreach (var sub in subjects)
-                {
-                    bool isSelected = selectedSubjectId == sub.SubjectId;
-                    <div style="flex: 0 0 170px;">
-                        <a href="@(isSelected ? "/Home/Quizzed" : $"/Home/Quizzed?subjectId={sub.SubjectId}")" class="text-decoration-none">
-                            <div class="card h-100 shadow-sm" 
-                                 style="border-radius: 12px; border: @(isSelected ? "2px solid #059669" : "1px solid #E2E8F0"); background: @(isSelected ? "#F0FDF4" : "#FFFFFF");">
-                                <div class="p-3 d-flex flex-column justify-content-between" style="min-height: 200px;">
-                                    <h6 class="fw-bold text-dark m-0" style="height: 2.6em; line-height: 1.3;" title="@sub.Name">
-                                        @sub.Name
-                                    </h6>
-                                    
-                                    <div class="rounded d-flex flex-column align-items-center justify-content-center text-center p-2 my-2" 
-                                         style="background: @sub.ThemeColor; color: @sub.TextColor; height: 85px;">
-                                        <span class="badge bg-light text-dark fw-bold mb-1" style="font-size: 0.65rem;">@sub.Code</span>
-                                        <small class="text-truncate px-1 fw-bold" style="font-size: 0.72rem; max-width: 100%;">@sub.Name</small>
-                                    </div>
-
-                                    <div class="d-flex justify-content-between align-items-center pt-2 border-top text-muted small" style="font-size: 0.75rem;">
-                                        <span>Đề thi</span>
-                                        <span class="text-success fw-bold">@(isSelected ? "✓ Đang chọn" : "Chọn đề →")</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                }
-            </div>
-        }
+    <section class="section" aria-labelledby="subjectsTitle">
+        <div class="section-head">
+            <h2 id="subjectsTitle">Chọn môn</h2>
+            <a class="link-arrow" href="/Home/Subjects">Tất cả môn học <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
+        </div>
+        @await Html.PartialAsync("_SubjectRail", subjects, new ViewDataDictionary(ViewData) { { "BaseUrl", "/Home/Quizzed" }, { "SelectedId", selectedSubjectId }, { "ShowCounts", false } })
     </section>
 
-    <!-- SECTION 2: Danh sách bài thi trắc nghiệm -->
-    <section class="mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <div class="d-flex align-items-center gap-2">
-                <span style="display: inline-block; width: 4px; height: 22px; background: #10B981; border-radius: 2px;"></span>
-                <h2 class="h4 fw-bold m-0 text-dark">
-                    @(selectedSubject != null ? $"Đề Trắc Nghiệm Môn: {selectedSubject.Name}" : "Đề Trắc Nghiệm Đại Học Nổi Bật")
-                </h2>
-            </div>
-
-            <!-- Search form -->
-            <form method="get" action="/Home/Quizzed" class="d-flex gap-2">
+    <section class="section" aria-labelledby="quizTitle">
+        <div class="section-head">
+            <h2 id="quizTitle">@(selectedSubject != null ? $"Bộ đề môn {selectedSubject.Name}" : "Bộ đề mới nhất")</h2>
+            <form method="get" action="/Home/Quizzed" class="search" role="search">
                 @if (selectedSubjectId != null)
                 {
                     <input type="hidden" name="subjectId" value="@selectedSubjectId" />
                 }
-                <div class="input-group">
-                    <input type="text" name="search" class="form-control" 
-                           placeholder="Tìm bài thi trắc nghiệm..." 
-                           value="@searchKeyword" />
-                    <button class="btn btn-outline-success" type="submit">Tìm</button>
-                    @if (!string.IsNullOrWhiteSpace(searchKeyword) || selectedSubjectId != null)
-                    {
-                        <a href="/Home/Quizzed" class="btn btn-outline-secondary">Xóa lọc</a>
-                    }
-                </div>
+                <svg class="icon" aria-hidden="true"><use href="#i-search" /></svg>
+                <label for="quizSearch" class="visually-hidden">Tìm bộ đề trắc nghiệm</label>
+                <input id="quizSearch" type="search" name="search" placeholder="Tên bộ đề hoặc tag" value="@searchKeyword" />
+                <button type="submit">Tìm</button>
             </form>
         </div>
 
+        @if (filtering)
+        {
+            <p class="filter-note">
+                Đang lọc: @if (selectedSubject != null) { <span class="chip chip--green">@selectedSubject.Code</span> }
+                @if (!string.IsNullOrWhiteSpace(searchKeyword)) { <span class="chip">“@searchKeyword”</span> }
+                <a href="/Home/Quizzed" class="link-arrow">Bỏ lọc</a>
+            </p>
+        }
+
         @if (Model == null || Model.Count == 0)
         {
-            <div class="card p-5 text-center shadow-sm border-0" style="border-radius: 12px; background: #FFFFFF;">
-                <div style="font-size: 3.5rem;">🎯</div>
-                <h4 class="fw-bold mt-2">Chưa có bài thi trắc nghiệm nào</h4>
-                <p class="text-muted">
-                    @(selectedSubject != null 
-                        ? $"Hiện chưa có bộ trắc nghiệm cho môn '{selectedSubject.Name}'. Bạn có thể tạo từ đề cương bằng AI!" 
-                        : "Kho đề hiện tại chưa có đề trắc nghiệm. Hãy tải lên tài liệu để AI sinh bộ câu hỏi.")
-                </p>
-                <div>
-                    <a href="/Outline/Import" class="btn btn-success fw-bold px-4 py-2 mt-2" style="border-radius: 8px;">
-                        + Tạo đề trắc nghiệm mới
-                    </a>
-                </div>
+            <div class="empty">
+                <svg class="icon empty__icon" aria-hidden="true"><use href="#i-target" /></svg>
+                <h3>Chưa có bộ đề trắc nghiệm @(selectedSubject != null ? "cho môn này" : "khớp")</h3>
+                <p>Tải lên file đề có sẵn đáp án A, B, C, D, hoặc mở một đề cương và dùng xu để AI soạn câu hỏi.</p>
+                <a href="/Outline/Import" class="btn-arcade btn-arcade--green">
+                    <svg class="icon" aria-hidden="true"><use href="#i-upload" /></svg>Tải bộ đề lên
+                </a>
             </div>
         }
         else
         {
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <div class="doc-grid">
                 @foreach (var item in Model)
                 {
-                    <div class="col">
-                        <div class="card h-100 shadow-sm border-0" style="border-radius: 12px;">
-                            <div class="card-body d-flex flex-column justify-content-between p-4">
-                                <div>
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span class="badge bg-success-subtle text-success fw-bold">@item.Subject.Code</span>
-                                        <span class="badge bg-secondary-subtle text-secondary">@item.QuestionCount câu hỏi</span>
-                                    </div>
-                                    <h5 class="card-title fw-bold text-dark text-truncate-2">
-                                        <a href="/Home/Quiz/@item.ContentId" class="text-dark text-decoration-none">
-                                            @item.Title
-                                        </a>
-                                    </h5>
-                                    <p class="card-text text-muted small text-truncate-3">
-                                        @(string.IsNullOrEmpty(item.Description) ? "Bộ câu hỏi trắc nghiệm rèn luyện kỹ năng và củng cố kiến thức." : item.Description)
-                                    </p>
-                                </div>
-
-                                <div class="pt-3 border-top mt-3 d-flex justify-content-between align-items-center">
-                                    <span class="small text-muted">⭐ @item.StarCount lượt thi</span>
-                                    <a href="/Home/Quiz/@item.ContentId" class="btn btn-sm btn-primary fw-bold px-3">
-                                        Bắt đầu làm bài &rarr;
-                                    </a>
-                                </div>
-                            </div>
+                    <article class="doc-card doc-card--quiz">
+                        <div class="doc-card__top">
+                            <span class="chip chip--code">@item.Subject.Code</span>
+                            <span class="d-inline-flex gap-2">
+                                <span class="chip @DiffChip(item.DifficultyLevel)">@DiffLabel(item.DifficultyLevel)</span>
+                                <span class="chip chip--blue"><span class="num">@item.QuestionCount</span>&nbsp;câu</span>
+                            </span>
                         </div>
-                    </div>
+                        <h3><a href="/Home/Quiz/@item.ContentId">@item.Title</a></h3>
+                        <p class="doc-card__desc">@(string.IsNullOrEmpty(item.Description) ? $"Bộ câu hỏi trắc nghiệm môn {item.Subject.Name}." : item.Description)</p>
+                        <div class="doc-card__meta">
+                            <span class="doc-card__author">
+                                <span class="avatar avatar--sm" aria-hidden="true">@(string.IsNullOrEmpty(item.Author.DisplayName) ? "?" : item.Author.DisplayName.Substring(0, 1).ToUpper())</span>
+                                <span>@item.Author.DisplayName</span>
+                            </span>
+                            <span class="doc-card__go" aria-hidden="true">Làm bài <svg class="icon"><use href="#i-arrow" /></svg></span>
+                        </div>
+                    </article>
                 }
             </div>
         }
     </section>
-
 </div>
