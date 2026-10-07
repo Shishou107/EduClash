@@ -1,0 +1,188 @@
+@model List<ContentItemViewModel>
+@{
+    ViewData["Title"] = "Trang Chủ — Ôn Thi & Đề Cương Đại Học";
+    var subjects = ViewBag.Subjects as List<SubjectViewModel> ?? new List<SubjectViewModel>();
+    int? selectedSubjectId = ViewBag.SelectedSubjectId as int?;
+    var selectedSubject = ViewBag.SelectedSubject as SubjectViewModel;
+    string searchKeyword = ViewBag.SearchKeyword as string ?? "";
+}
+
+<!-- Breadcrumbs Strip (Dark Navy #0F1D33) -->
+<div class="edu-breadcrumbs-strip" style="background-color: #0F1D33; padding: 12px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 10px; font-size: 0.95rem;">
+        <a href="/" style="color: #FFFFFF; font-weight: 500; text-decoration: none;">Trang chủ</a>
+        <span style="color: #94A3B8;">&gt;</span>
+        <a href="/" style="color: #FFFFFF; font-weight: 500; text-decoration: none;">Đại Học</a>
+        @if (selectedSubject != null)
+        {
+            <span style="color: #94A3B8;">&gt;</span>
+            <span style="color: #38BDF8; font-weight: 600;">@selectedSubject.Name</span>
+        }
+    </div>
+</div>
+
+<div class="container py-4" style="max-width: 1200px;">
+
+
+    <!-- SECTION 1: Các môn Đại Học (Horizontal Scroll Square Cards) -->
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <span style="display: inline-block; width: 4px; height: 22px; background: #10B981; border-radius: 2px;"></span>
+                <h2 class="h4 fw-bold m-0 text-dark">Đề Cương Lý Thuyết các môn Đại Học</h2>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                @if (selectedSubjectId != null)
+                {
+                    <a href="/" class="btn btn-sm btn-outline-secondary">✕ Xem tất cả đề</a>
+                }
+                <a href="/Home/Subjects" class="text-success fw-bold text-decoration-none">
+                    Xem tất cả các môn &rarr;
+                </a>
+            </div>
+        </div>
+
+        @if (subjects.Count == 0)
+        {
+            <div class="text-muted py-3 px-1 small">Chưa có môn học nào trong hệ thống.</div>
+        }
+        else
+        {
+            <!-- Khung cuộn ngang mượt mà -->
+            <div class="d-flex gap-3 overflow-auto pb-3" style="scrollbar-width: thin;">
+                @foreach (var sub in subjects)
+                {
+                    bool isSelected = selectedSubjectId == sub.SubjectId;
+                    <div style="flex: 0 0 170px;">
+                        <a href="@(isSelected ? "/" : $"/?subjectId={sub.SubjectId}")" class="text-decoration-none">
+                            <div class="card h-100 shadow-sm transition-all" 
+                                 style="border-radius: 12px; border: @(isSelected ? "2px solid #059669" : "1px solid #E2E8F0"); background: @(isSelected ? "#F0FDF4" : "#FFFFFF");">
+                                <div class="p-3 d-flex flex-column justify-content-between" style="min-height: 200px;">
+                                    <h6 class="fw-bold text-dark text-truncate-2 m-0" style="height: 2.6em; line-height: 1.3;" title="@sub.Name">
+                                        @sub.Name
+                                    </h6>
+                                    
+                                    <!-- Book cover mockup -->
+                                    <div class="rounded d-flex flex-column align-items-center justify-content-center text-center p-2 my-2" 
+                                         style="background: @sub.ThemeColor; color: @sub.TextColor; height: 85px;">
+                                        <span class="badge bg-light text-dark fw-bold mb-1" style="font-size: 0.65rem;">@sub.Code</span>
+                                        <small class="text-truncate px-1 fw-bold" style="font-size: 0.72rem; max-width: 100%;">@sub.Name</small>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center pt-2 border-top text-muted small" style="font-size: 0.75rem;">
+                                        <span>@sub.ContentsCount đề</span>
+                                        <span class="text-success fw-bold">@(isSelected ? "✓ Đang chọn" : "Chọn môn →")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+
+    <!-- SECTION 2: Danh sách đề cương / đề thi -->
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <span style="display: inline-block; width: 4px; height: 22px; background: #10B981; border-radius: 2px;"></span>
+                <h2 class="h4 fw-bold m-0 text-dark">
+                    @(selectedSubject != null ? $"Đề Cương Môn: {selectedSubject.Name}" : "Đề Cương & Lý Thuyết Đại Học Nổi Bật")
+                </h2>
+            </div>
+
+            <!-- Search form -->
+            <form method="get" action="/" class="d-flex gap-2">
+                @if (selectedSubjectId != null)
+                {
+                    <input type="hidden" name="subjectId" value="@selectedSubjectId" />
+                }
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Tìm tên đề, tag: toán, giải tích..." 
+                           value="@searchKeyword" />
+                    <button class="btn btn-outline-success" type="submit">Tìm</button>
+                    @if (!string.IsNullOrWhiteSpace(searchKeyword) || selectedSubjectId != null)
+                    {
+                        <a href="/" class="btn btn-outline-secondary">Xóa lọc</a>
+                    }
+                </div>
+            </form>
+        </div>
+
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="card p-5 text-center shadow-sm border-0" style="border-radius: 12px; background: #FFFFFF;">
+                <div style="font-size: 3.5rem;">📚</div>
+                <h4 class="fw-bold mt-2">Chưa có đề cương nào</h4>
+                <p class="text-muted">
+                    @(selectedSubject != null 
+                        ? $"Hiện chưa có tài liệu cho môn '{selectedSubject.Name}'. Bạn có thể tải lên đề mới ngay!" 
+                        : "Kho đề hiện tại chưa có đề cương mẫu. Hãy tải lên tài liệu DOCX, PDF của bạn.")
+                </p>
+                <div>
+                    <a href="/Outline/Import" class="btn btn-success fw-bold px-4 py-2 mt-2" style="border-radius: 8px;">
+                        + Tải lên đề cương mới
+                    </a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                @foreach (var item in Model)
+                {
+                    <div class="col">
+                        <div class="card h-100 shadow-sm border-0" style="border-radius: 12px; transition: transform 0.2s;">
+                            <div class="card-body d-flex flex-column justify-content-between p-4">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge bg-primary-subtle text-primary fw-bold">@item.Subject.Code</span>
+                                        <span class="text-muted small">⭐ @item.StarCount lượt thích</span>
+                                    </div>
+                                    <h5 class="card-title fw-bold text-dark text-truncate-2">
+                                        <a href="/Home/Outline/@item.ContentId" class="text-dark text-decoration-none">
+                                            @item.Title
+                                        </a>
+                                    </h5>
+                                    <p class="card-text text-muted small text-truncate-3">
+                                        @(string.IsNullOrEmpty(item.Description) ? "Tài liệu tóm tắt ôn thi trắc nghiệm & lý thuyết chuyên sâu." : item.Description)
+                                    </p>
+                                </div>
+
+                                <div class="pt-3 border-top mt-3 d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; font-size: 0.75rem;">
+                                            @item.Author.DisplayName.Substring(0, Math.Min(1, item.Author.DisplayName.Length))
+                                        </div>
+                                        <span class="small text-muted">@item.Author.DisplayName</span>
+                                    </div>
+                                    <a href="/Home/Outline/@item.ContentId" class="btn btn-sm btn-outline-success fw-bold">
+                                        Xem đề &rarr;
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+
+</div>
+
+<style>
+    .text-truncate-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .text-truncate-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>

@@ -1,0 +1,93 @@
+@model UserProfileViewModel
+@{
+    ViewData["Title"] = "Hồ Sơ Cá Nhân — EduClash";
+}
+
+<div class="edu-breadcrumbs-strip" style="background-color: #0F1D33; padding: 12px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 10px; font-size: 0.95rem;">
+        <a href="/" style="color: #FFFFFF; font-weight: 500; text-decoration: none;">Trang chủ</a>
+        <span style="color: #94A3B8;">&gt;</span>
+        <span style="color: #38BDF8; font-weight: 600;">Hồ sơ cá nhân</span>
+    </div>
+</div>
+
+<div class="container py-5" style="max-width: 860px;">
+    @if (Model == null)
+    {
+        <div class="alert alert-warning">Bạn chưa đăng nhập. Vui lòng <a href="/Auth/Login">đăng nhập</a> để xem hồ sơ.</div>
+    }
+    else
+    {
+        <div class="card shadow-sm border-0 overflow-hidden mb-4" style="border-radius: 16px; background: #FFFFFF;">
+            <!-- Header banner -->
+            <div class="p-4 p-md-5" style="background: linear-gradient(135deg, #0F1D33 0%, #1E293B 100%); color: #FFFFFF;">
+                <div class="d-flex align-items-center gap-4 flex-wrap">
+                    <div class="rounded-circle overflow-hidden shadow" style="width: 88px; height: 88px; background: #334155; border: 3px solid #10B981;">
+                        <img src="@(string.IsNullOrEmpty(Model.AvatarUrl) ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80" : Model.AvatarUrl)" 
+                             alt="@Model.DisplayName" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </div>
+                    <div>
+                        <h2 class="h3 fw-bold m-0 text-white">@Model.DisplayName</h2>
+                        <p class="small m-0 text-white-50">@Model.Email</p>
+                        <div class="d-flex gap-2 mt-2">
+                            <span class="badge bg-success">@Model.Role</span>
+                            <span class="badge bg-info text-dark">🛡️ @Model.RankTier</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats row -->
+            <div class="p-4 border-bottom bg-light">
+                <div class="row text-center g-3">
+                    <div class="col-4">
+                        <div class="card p-3 border-0 shadow-sm" style="border-radius: 10px; background: #FFFFFF;">
+                            <div class="text-muted small">Ví Xu AI</div>
+                            <div class="fs-4 fw-bold text-warning">🪙 @Model.Coins</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="card p-3 border-0 shadow-sm" style="border-radius: 10px; background: #FFFFFF;">
+                            <div class="text-muted small">Điểm Đấu Trí (Elo)</div>
+                            <div class="fs-4 fw-bold text-success">⚔️ @Model.Rating</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="card p-3 border-0 shadow-sm" style="border-radius: 10px; background: #FFFFFF;">
+                            <div class="text-muted small">Cấp Bậc</div>
+                            <div class="fs-4 fw-bold text-primary">🛡️ @Model.RankTier</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Management Section: Đề Cương & Tài Liệu Của Tôi -->
+            <div class="p-4 border-bottom">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <div>
+                        <h4 class="h5 fw-bold m-0 text-dark">📑 Kho Đề Cương &amp; Bài Thi Của Bạn</h4>
+                        <p class="text-muted small m-0">Quản lý, xem lại và xóa các đề cương hoặc bộ đề trắc nghiệm bạn đã đăng tải.</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="/Outline/MyOutlines" class="btn btn-primary fw-bold px-3 py-2">
+                            📑 Quản lý đề cương của tôi &rarr;
+                        </a>
+                        <a href="/Outline/Import" class="btn btn-outline-success fw-bold px-3 py-2">
+                            + Tải lên đề mới
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions footer -->
+            <div class="p-4 d-flex justify-content-between align-items-center flex-wrap gap-2 bg-light">
+                <a href="/" class="btn btn-outline-secondary">
+                    &larr; Về trang chủ
+                </a>
+                <a href="/Auth/Logout" class="btn btn-outline-danger">
+                    🚪 Đăng xuất
+                </a>
+            </div>
+        </div>
+    }
+</div>

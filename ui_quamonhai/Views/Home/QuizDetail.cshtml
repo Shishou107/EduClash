@@ -1,0 +1,143 @@
+@model QuizDetailViewModel
+@{
+    ViewData["Title"] = $"{Model.Title} — Làm Bài Thi";
+    var questionCount = Model.Questions?.Count ?? 0;
+}
+
+<div class="edu-breadcrumbs-strip" style="background-color: #0F1D33; padding: 12px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 10px; font-size: 0.95rem;">
+        <a href="/" style="color: #FFFFFF; font-weight: 500; text-decoration: none;">Trang chủ</a>
+        <span style="color: #94A3B8;">&gt;</span>
+        <a href="/Home/Quizzed" style="color: #FFFFFF; font-weight: 500; text-decoration: none;">Trắc nghiệm</a>
+        <span style="color: #94A3B8;">&gt;</span>
+        <span style="color: #38BDF8; font-weight: 600;">@Model.Title</span>
+    </div>
+</div>
+
+<div class="container py-4" style="max-width: 900px;">
+    <!-- Quiz Header -->
+    <div class="card shadow-sm border-0 p-4 mb-4" style="border-radius: 12px; background: #FFFFFF;">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <span class="badge bg-success-subtle text-success fw-bold">@(Model.Subject?.Code ?? "CS") - @(Model.Subject?.Name ?? "Trắc nghiệm")</span>
+                <h2 class="h4 fw-bold text-dark mt-2 mb-1">@Model.Title</h2>
+                <small class="text-muted">Tổng số: <strong>@questionCount câu</strong> • Thời gian đề xuất: <strong>@(questionCount * 1.5) phút</strong></small>
+            </div>
+            <div class="p-3 bg-light rounded text-center border">
+                <div class="text-muted small">Thời gian còn lại</div>
+                <div class="h4 fw-bold text-danger m-0" id="quizTimer">20:00</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Questions Form -->
+    <form id="quizForm">
+        @if (Model.Questions != null)
+        {
+            @for (int i = 0; i < Model.Questions.Count; i++)
+            {
+                var q = Model.Questions[i];
+                <div class="card shadow-sm border-0 p-4 mb-3 question-box" style="border-radius: 12px; background: #FFFFFF;" data-qid="@q.QuestionId">
+                    <div class="d-flex align-items-start gap-2 mb-3">
+                        <span class="badge bg-primary fs-6 px-2 py-1">Câu @(i + 1)</span>
+                        <h5 class="fw-bold m-0" style="line-height: 1.4;">@q.QuestionText</h5>
+                    </div>
+
+                    <div class="options-list d-flex flex-column gap-2">
+                        @if (q.Answers != null)
+                        {
+                            @foreach (var a in q.Answers)
+                            {
+                                <label class="p-3 border rounded d-flex align-items-center gap-3 cursor-pointer option-label" style="cursor: pointer; transition: background 0.15s;">
+                                    <input type="radio" name="q_@q.QuestionId" value="@a.AnswerId" data-correct="@(a.IsCorrect ? "1" : "0")" class="form-check-input m-0" />
+                                    <span>@a.AnswerText</span>
+                                </label>
+                            }
+                        }
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(q.Explanation))
+                    {
+                        <div class="alert alert-info mt-3 d-none explanation-box">
+                            <strong>Giải thích:</strong> @q.Explanation
+                        </div>
+                    }
+                </div>
+            }
+        }
+
+        <div class="text-center my-4">
+            <button type="button" id="btnSubmitQuiz" class="btn btn-success btn-lg fw-bold px-5 py-3 shadow" style="border-radius: 10px;">
+                ✓ Nộp Bài &amp; Xem Kết Quả
+            </button>
+        </div>
+    </form>
+
+    <!-- Result Banner (Hidden initially) -->
+    <div id="quizResultBanner" class="card shadow border-0 p-4 text-center d-none" style="border-radius: 12px; background: #F0FDF4; border: 2px solid #10B981;">
+        <h3 class="fw-bold text-success mb-2">🎉 Hoàn Thành Bài Thi!</h3>
+        <p class="fs-4 m-0" id="scoreText">Bạn đạt <strong>0 / 0</strong> điểm</p>
+        <div class="mt-3">
+            <a href="/Home/Quizzed" class="btn btn-primary fw-bold px-4">Trở về danh sách đề</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // Countdown Timer
+    let totalSeconds = @(Math.Max(5, questionCount * 90));
+    const timerElem = document.getElementById('quizTimer');
+    const timerInterval = setInterval(() => {
+        if (totalSeconds <= 0) {
+            clearInterval(timerInterval);
+            timerElem.innerText = "Hết giờ!";
+            submitQuiz();
+            return;
+        }
+        totalSeconds--;
+        const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+        const s = (totalSeconds % 60).toString().padStart(2, '0');
+        timerElem.innerText = `${m}:${s}`;
+    }, 1000);
+
+    function submitQuiz() {
+        clearInterval(timerInterval);
+        let correctCount = 0;
+        const total = @questionCount;
+
+        document.querySelectorAll('.question-box').forEach(box => {
+            const checkedRadio = box.querySelector('input[type="radio"]:checked');
+            const explanation = box.querySelector('.explanation-box');
+            if (explanation) explanation.classList.remove('d-none');
+
+            box.querySelectorAll('.option-label').forEach(lbl => {
+                const radio = lbl.querySelector('input');
+                if (radio.dataset.correct === "1") {
+                    lbl.style.borderColor = "#10B981";
+                    lbl.style.background = "#DCFCE7";
+                }
+            });
+
+            if (checkedRadio) {
+                if (checkedRadio.dataset.correct === "1") {
+                    correctCount++;
+                } else {
+                    checkedRadio.parentElement.style.borderColor = "#EF4444";
+                    checkedRadio.parentElement.style.background = "#FEE2E2";
+                }
+            }
+        });
+
+        const scorePercent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+        document.getElementById('scoreText').innerHTML = `Điểm số của bạn: <strong class="text-success">${scorePercent}/100</strong> (${correctCount}/${total} câu đúng)`;
+        const banner = document.getElementById('quizResultBanner');
+        banner.classList.remove('d-none');
+        banner.scrollIntoView({ behavior: 'smooth' });
+
+        document.getElementById('btnSubmitQuiz').disabled = true;
+    }
+
+    document.getElementById('btnSubmitQuiz')?.addEventListener('click', submitQuiz);
+</script>
+}
