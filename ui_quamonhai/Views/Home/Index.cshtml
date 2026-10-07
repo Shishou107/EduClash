@@ -40,8 +40,8 @@
                 @if (me != null)
                 {
                     <dl class="me-strip m-0" aria-label="Chỉ số của bạn">
-                        <div><dt>Elo của bạn</dt><dd class="is-elo">@me.Rating</dd></div>
-                        <div><dt>Xu</dt><dd class="is-coin">@me.Coins</dd></div>
+                        <div><dt>Elo của bạn</dt><dd class="is-elo"><span data-count>@me.Rating</span></dd></div>
+                        <div><dt>Xu</dt><dd class="is-coin"><span data-count>@me.Coins</span></dd></div>
                         <div><dt>Thắng / Thua</dt><dd>@me.Wins/@me.Losses</dd></div>
                     </dl>
                 }
@@ -67,7 +67,7 @@
                                     }
                                 </span>
                                 <span class="board__name">@p.DisplayName<small>Hạng @p.RankTier · @p.Wins trận thắng</small></span>
-                                <span class="board__score">@p.Rating<span class="visually-hidden"> Elo</span></span>
+                                <span class="board__score"><span data-count>@p.Rating</span><span class="visually-hidden"> Elo</span></span>
                             </li>
                         }
                     </ol>
@@ -160,3 +160,34 @@
         }
     </section>
 </div>
+
+@section Scripts {
+<script>
+    // Điểm trên bảng đếm từ 0 lên khi bảng "bật nguồn". Số thật đã có sẵn trong HTML,
+    // nên nếu script lỗi hoặc người dùng tắt chuyển động thì vẫn thấy đúng số.
+    (function () {
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const els = document.querySelectorAll('.hero [data-count]');
+        els.forEach((el, i) => {
+            const target = parseInt(el.textContent, 10);
+            if (!Number.isFinite(target) || target <= 0) return;
+            el.setAttribute('aria-hidden', 'true');
+            const label = document.createElement('span');
+            label.className = 'visually-hidden';
+            label.textContent = target;
+            el.after(label);
+            el.textContent = '0';
+            const delay = 850 + i * 120, dur = 900;
+            setTimeout(() => {
+                const t0 = performance.now();
+                const tick = (now) => {
+                    const p = Math.min(1, (now - t0) / dur);
+                    el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+                    if (p < 1) requestAnimationFrame(tick);
+                };
+                requestAnimationFrame(tick);
+            }, delay);
+        });
+    })();
+</script>
+}
