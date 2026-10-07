@@ -7,6 +7,7 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/arena.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/cabinet.css" asp-append-version="true" />
 }
 
 <div class="wrap">
@@ -157,7 +158,13 @@
     </div>
 
     <!-- 2. TRẬN ĐẤU PIXEL -->
-    <section id="battleScreen" class="pixel-arena-container d-none" aria-label="Trận đấu">
+    <section id="battleScreen" class="cabinet d-none" aria-label="Trận đấu">
+        <div class="cabinet__marquee" aria-hidden="true">
+            <span class="cabinet__logo">EDU<b>CLASH</b></span>
+            <span class="cabinet__sub">ARENA · 1 VS 1</span>
+        </div>
+        <div class="cabinet__bezel">
+        <div class="cabinet__screen pixel-arena-container">
         <div class="pixel-arena-top-bar">
             <div class="d-flex align-items-center gap-2 top-bar-info">
                 <span class="pixel-mode-pill">1 VS 1</span>
@@ -180,7 +187,7 @@
 
             <div class="pixel-fighter-station station-left">
                 <div class="fighter-header">
-                    <span class="fighter-tag-title" id="p1NameTag">BAN · 200/200 HP</span>
+                    <span class="fighter-tag-title" id="p1NameTag">BAN</span><span class="fighter-hp" id="p1HpText">200 HP</span>
                     <div class="pixel-health-bar-frame"><div class="pixel-health-bar-fill fill-green" id="p1HealthFill"></div></div>
                 </div>
                 <div class="floating-damage-popup d-none" id="damagePop1">-20 HP</div>
@@ -197,7 +204,7 @@
 
             <div class="pixel-fighter-station station-right">
                 <div class="fighter-header">
-                    <span class="fighter-tag-title" id="p2NameTag">DOI THU · 200/200 HP</span>
+                    <span class="fighter-tag-title" id="p2NameTag">DOI THU</span><span class="fighter-hp" id="p2HpText">200 HP</span>
                     <div class="pixel-health-bar-frame"><div class="pixel-health-bar-fill fill-red" id="p2HealthFill"></div></div>
                 </div>
                 <div class="floating-damage-popup d-none" id="damagePop2">-20 HP</div>
@@ -245,6 +252,24 @@
                 </div>
             </div>
         </div>
+        </div>
+        </div>
+
+        <div class="cabinet__deck">
+            <div class="joystick" aria-hidden="true"><span class="joystick__stick"></span></div>
+            <div class="deck-buttons" role="group" aria-label="Nút chọn đáp án, phím tắt A đến D">
+                <button type="button" class="arcade-btn arcade-btn--a" data-pick="0" aria-label="Chọn đáp án A"><span>A</span></button>
+                <button type="button" class="arcade-btn arcade-btn--b" data-pick="1" aria-label="Chọn đáp án B"><span>B</span></button>
+                <button type="button" class="arcade-btn arcade-btn--c" data-pick="2" aria-label="Chọn đáp án C"><span>C</span></button>
+                <button type="button" class="arcade-btn arcade-btn--d" data-pick="3" aria-label="Chọn đáp án D"><span>D</span></button>
+            </div>
+            <div class="coin-slot" aria-hidden="true">
+                <span class="coin-slot__mouth"></span>
+                <span class="coin-slot__label">INSERT COIN</span>
+            </div>
+        </div>
+        <div class="cabinet__base" aria-hidden="true"></div>
+        <p class="cabinet__hint">Bấm nút trên máy hoặc gõ phím A, B, C, D để trả lời.</p>
     </section>
 
     <!-- 3. KẾT QUẢ -->
@@ -751,7 +776,7 @@
 
     // 6. GHÉP NHANH CÙNG BOT AI
     btnQuickMatch?.addEventListener('click', () => {
-        startBotMatch("Bot luyện tập");
+        startBotMatch("Bot tập");
     });
 
     // =========================================================================
@@ -978,6 +1003,7 @@
         document.getElementById('questionText').innerText = q.text;
 
         answersContainer.innerHTML = '';
+        resetDeck(q.answers.length);
 
         q.answers.forEach((ans, idx) => {
             const letter = String.fromCharCode(65 + idx);
@@ -1019,6 +1045,7 @@
 
         if (clickedBtn) {
             clickedBtn.classList.add(isCorrect ? 'correct-pick' : 'wrong-pick');
+            lightDeck(clickedBtn, isCorrect);
         }
 
         if (isCorrect) {
@@ -1158,8 +1185,10 @@
     function updateHealthUI() {
         document.getElementById('p1HealthFill').style.transform = `scaleX(${p1Hp / 200})`;
         document.getElementById('p2HealthFill').style.transform = `scaleX(${p2Hp / 200})`;
-        document.getElementById('p1NameTag').innerText = `BAN · ${p1Hp} HP`;
-        document.getElementById('p2NameTag').innerText = `${asciiName(opponentName)} · ${p2Hp} HP`;
+        document.getElementById('p1NameTag').innerText = 'BAN';
+        document.getElementById('p2NameTag').innerText = asciiName(opponentName);
+        document.getElementById('p1HpText').innerText = `${p1Hp} HP`;
+        document.getElementById('p2HpText').innerText = `${p2Hp} HP`;
     }
 
     // =========================================================================
@@ -1230,6 +1259,45 @@
     function asciiName(name) {
         return (name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toUpperCase().slice(0, 14);
     }
+
+    // ---- Bàn điều khiển máy arcade: 4 nút A–D và phím tắt bàn phím ----
+    const deckButtons = [...document.querySelectorAll('.arcade-btn')];
+
+    function resetDeck(answerCount) {
+        deckButtons.forEach((b, i) => {
+            b.classList.remove('is-correct', 'is-wrong', 'is-pressed');
+            b.disabled = i >= answerCount;
+        });
+    }
+
+    function lightDeck(answerBtn, isCorrect) {
+        const i = [...answersContainer.children].indexOf(answerBtn);
+        deckButtons.forEach(b => b.disabled = true);
+        if (deckButtons[i]) deckButtons[i].classList.add(isCorrect ? 'is-correct' : 'is-wrong');
+    }
+
+    function pressAnswer(i) {
+        const target = answersContainer.children[i];
+        if (!target || target.disabled || battle.classList.contains('d-none')) return;
+        const deckBtn = deckButtons[i];
+        if (deckBtn) {
+            deckBtn.classList.add('is-pressed');
+            setTimeout(() => deckBtn.classList.remove('is-pressed'), 140);
+        }
+        target.click();
+    }
+
+    deckButtons.forEach(b => b.addEventListener('click', () => pressAnswer(Number(b.dataset.pick))));
+
+    document.addEventListener('keydown', (e) => {
+        if (battle.classList.contains('d-none') || e.ctrlKey || e.metaKey || e.altKey) return;
+        if (e.target instanceof Element && e.target.closest('input, textarea, select, dialog')) return;
+        const map = { a: 0, b: 1, c: 2, d: 3, '1': 0, '2': 1, '3': 2, '4': 3 };
+        const i = map[e.key.toLowerCase()];
+        if (i === undefined) return;
+        e.preventDefault();
+        pressAnswer(i);
+    });
 
     document.getElementById('btnRules')?.addEventListener('click', function () {
         const panel = document.getElementById('pixelRules');

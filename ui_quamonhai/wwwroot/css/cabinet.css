@@ -1,0 +1,214 @@
+/* ==========================================================================
+   MÁY ARCADE — trận đấu nằm trong màn hình CRT của một tủ máy game
+   ========================================================================== */
+.cabinet {
+    --cab: #1B2B4A;
+    --cab-dark: #0C1628;
+    --cab-edge: #050C18;
+    --trim: var(--coin);
+    position: relative;
+    margin: 20px auto 0;
+    max-width: 980px;
+    padding: 0 22px;
+    background:
+        linear-gradient(90deg, var(--cab-dark) 0 22px, transparent 22px calc(100% - 22px), var(--cab-dark) calc(100% - 22px)),
+        var(--cab);
+    border: 3px solid var(--cab-edge);
+    border-radius: 22px 22px 10px 10px;
+    box-shadow: 0 8px 0 var(--cab-edge), 0 30px 60px rgba(15, 29, 51, 0.35);
+}
+/* sọc vàng chạy dọc hai bên thân máy */
+.cabinet::before, .cabinet::after {
+    content: "";
+    position: absolute;
+    top: 96px;
+    bottom: 120px;
+    width: 4px;
+    background: repeating-linear-gradient(180deg, var(--trim) 0 12px, transparent 12px 18px);
+    opacity: 0.85;
+}
+.cabinet::before { left: 9px; }
+.cabinet::after { right: 9px; }
+
+/* Bảng hiệu phát sáng */
+.cabinet__marquee {
+    margin: 14px 0 16px;
+    padding: 14px 18px 12px;
+    text-align: center;
+    background:
+        radial-gradient(120% 140% at 50% 0%, rgba(245, 183, 10, 0.28), transparent 60%),
+        var(--cab-dark);
+    border: 3px solid var(--cab-edge);
+    border-radius: 12px;
+    box-shadow: inset 0 0 0 2px rgba(245, 183, 10, 0.25), inset 0 -8px 20px rgba(0, 0, 0, 0.4);
+}
+.cabinet__logo {
+    display: block;
+    font-family: var(--font-pixel);
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    letter-spacing: 0.08em;
+    color: #FFF6D6;
+    text-shadow: 0 0 6px rgba(245, 183, 10, 0.9), 0 0 18px rgba(245, 183, 10, 0.55), 0 3px 0 #7A5200;
+}
+.cabinet__logo b { color: var(--coin); font-weight: 700; }
+.cabinet__sub { display: block; margin-top: 4px; font-family: var(--font-pixel); font-size: 0.7rem; color: var(--on-ink-2); letter-spacing: 0.2em; }
+
+/* Viền màn hình (bezel) và màn CRT */
+.cabinet__bezel {
+    padding: 18px;
+    background: #0A0F1A;
+    border: 3px solid var(--cab-edge);
+    border-radius: 18px;
+    box-shadow: inset 0 0 0 6px #121A2B, inset 0 0 30px rgba(0, 0, 0, 0.8);
+}
+.cabinet__screen.pixel-arena-container {
+    margin: 0;
+    border: 0;
+    border-radius: 14px;
+    box-shadow: 0 0 0 2px #000, 0 0 24px rgba(70, 138, 201, 0.35);
+    isolation: isolate;
+}
+/* vân quét ngang + tối viền như màn CRT */
+.cabinet__screen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    border-radius: inherit;
+    background:
+        repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0 1px, transparent 1px 3px),
+        radial-gradient(130% 120% at 50% 50%, transparent 62%, rgba(0, 0, 0, 0.45) 100%);
+}
+@media (prefers-reduced-motion: no-preference) {
+    .cabinet:not(.d-none) .cabinet__screen { animation: crt-on 0.55s steps(6, end) both; }
+    .cabinet:not(.d-none) .cabinet__logo { animation: marquee-flicker 0.9s steps(1, end) 0.1s both; }
+}
+@keyframes marquee-flicker {
+    0%, 20%, 40% { opacity: 0.25; }
+    10%, 30%, 55%, 100% { opacity: 1; }
+}
+
+/* Nhãn tên + HP trên đầu nhân vật */
+.pixel-btn-action { white-space: nowrap; }
+.fighter-hp { display: block; font-family: var(--font-pixel); font-size: 0.6rem; color: #F1D302; margin-top: 1px; }
+
+/* Bàn điều khiển */
+.cabinet__deck {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 20px;
+    margin: 18px -22px 0;
+    padding: 22px 40px 20px;
+    background: linear-gradient(180deg, #2A3F66 0%, #1B2B4A 100%);
+    border-top: 3px solid var(--cab-edge);
+    border-bottom: 3px solid var(--cab-edge);
+    box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.12);
+}
+.joystick {
+    position: relative;
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 40%, #2B3346, #0B0F18 70%);
+    border: 3px solid var(--cab-edge);
+    box-shadow: 0 4px 0 var(--cab-edge);
+}
+.joystick__stick {
+    position: absolute;
+    left: 50%;
+    bottom: 50%;
+    width: 10px;
+    height: 34px;
+    margin-left: -5px;
+    background: linear-gradient(90deg, #6B7280, #D1D5DB 45%, #6B7280);
+    border-radius: 4px;
+    transform-origin: 50% 100%;
+    transform: rotate(-12deg);
+}
+.joystick__stick::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -18px;
+    width: 30px;
+    height: 30px;
+    margin-left: -15px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #FF8A8E, var(--hp) 45%, var(--hp-deep));
+    box-shadow: 0 3px 0 #6B1015;
+}
+
+.deck-buttons { display: flex; justify-content: center; gap: clamp(10px, 2.5vw, 22px); }
+.arcade-btn {
+    --c: var(--coin);
+    --c-dark: #8A6200;
+    position: relative;
+    width: 62px;
+    height: 62px;
+    padding: 0;
+    border-radius: 50%;
+    border: 3px solid var(--cab-edge);
+    background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--c) 70%, white), var(--c) 55%, var(--c-dark));
+    box-shadow: 0 6px 0 var(--c-dark), 0 6px 0 3px var(--cab-edge), inset 0 -4px 0 rgba(0, 0, 0, 0.18);
+    cursor: pointer;
+    transition: transform 0.08s, box-shadow 0.08s, filter 0.15s;
+}
+.arcade-btn span { font-family: var(--font-pixel); font-size: 1.1rem; color: #0B1220; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4); }
+.arcade-btn--a { --c: #F5B70A; --c-dark: #8A6200; }
+.arcade-btn--b { --c: #10B981; --c-dark: #065F46; }
+.arcade-btn--c { --c: #3B82F6; --c-dark: #1E3A8A; }
+.arcade-btn--d { --c: #E5484D; --c-dark: #7F1D1D; }
+.arcade-btn:hover:not(:disabled) { filter: brightness(1.12); }
+.arcade-btn:active:not(:disabled), .arcade-btn.is-pressed {
+    transform: translateY(5px);
+    box-shadow: 0 1px 0 var(--c-dark), 0 1px 0 3px var(--cab-edge), inset 0 -2px 0 rgba(0, 0, 0, 0.18);
+}
+.arcade-btn:disabled { cursor: default; filter: saturate(0.35) brightness(0.7); }
+.arcade-btn.is-correct { filter: none; box-shadow: 0 6px 0 var(--c-dark), 0 6px 0 3px var(--cab-edge), 0 0 0 6px rgba(16, 185, 129, 0.55), 0 0 24px rgba(16, 185, 129, 0.8); }
+.arcade-btn.is-wrong { filter: none; box-shadow: 0 6px 0 var(--c-dark), 0 6px 0 3px var(--cab-edge), 0 0 0 6px rgba(229, 72, 77, 0.55), 0 0 24px rgba(229, 72, 77, 0.8); }
+
+.coin-slot { display: grid; justify-items: center; gap: 6px; }
+.coin-slot__mouth {
+    width: 46px;
+    height: 58px;
+    border-radius: 6px;
+    background: linear-gradient(180deg, #3A3F4B, #1A1D24);
+    border: 3px solid var(--cab-edge);
+    position: relative;
+}
+.coin-slot__mouth::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 12px;
+    width: 4px;
+    height: 24px;
+    margin-left: -2px;
+    background: #000;
+    box-shadow: 0 0 6px rgba(245, 183, 10, 0.8);
+}
+.coin-slot__label { font-family: var(--font-pixel); font-size: 0.6rem; color: var(--coin); animation: blink 1.2s steps(2) infinite; }
+
+.cabinet__base {
+    height: 18px;
+    margin: 0 -22px;
+    background: repeating-linear-gradient(90deg, #0C1628 0 8px, #101D35 8px 16px);
+    border-radius: 0 0 8px 8px;
+}
+.cabinet__hint { margin: 12px 0 14px; text-align: center; font-size: var(--fs-sm); color: var(--on-ink-2); }
+
+@media (max-width: 760px) {
+    .cabinet { padding: 0 10px; border-radius: 16px 16px 8px 8px; background: var(--cab); }
+    .cabinet::before, .cabinet::after { display: none; }
+    .cabinet__marquee { margin: 10px 0; padding: 10px; }
+    .cabinet__bezel { padding: 8px; border-radius: 12px; }
+    .cabinet__deck { grid-template-columns: 1fr; margin: 12px -10px 0; padding: 16px 12px; }
+    .joystick, .coin-slot { display: none; }
+    .arcade-btn { width: 56px; height: 56px; }
+    .cabinet__base { margin: 0 -10px; }
+    .cabinet__hint { display: none; }
+}
