@@ -1,311 +1,157 @@
 @inject IAuthService AuthService
+@{
+    var user = AuthService.CurrentUser;
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var act = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    bool At(string c, params string[] actions) => ctrl == c && actions.Contains(act);
+    string? Cur(bool on) => on ? "page" : null;
+
+    var onOutlines = At("Home", "Index", "Outline");
+    var onQuizzes = At("Home", "Quizzed", "Quiz");
+    var onArena = At("Home", "Arena");
+    var onSubjects = At("Home", "Subjects");
+    var onBoard = At("Home", "Leaderboard");
+    var onMe = ctrl == "Auth" || ctrl == "Outline";
+}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] — EduClash</title>
-    
-    <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0F1D33" />
+    <title>@ViewData["Title"]</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
 
-    <!-- Bootstrap 5 -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <!-- Main App Styles -->
-    <link rel="stylesheet" href="~/app.css" />
+    <link rel="stylesheet" href="~/app.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
     <link rel="icon" type="image/png" href="~/favicon.png" />
-    
-    <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #F8FAFC;
-            color: #0F172A;
-            margin: 0;
-            padding: 0;
-        }
-        /* Top Sleek Navbar (Dark Navy #0F1D33) */
-        .app-navbar {
-            background-color: #0F1D33;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        .navbar-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .brand-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-        }
-        .brand-icon-mockup {
-            width: 38px;
-            height: 38px;
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-        .brand-text-logo {
-            font-size: 1.35rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-        }
-        .text-white { color: #FFFFFF !important; }
-        .text-emerald { color: #34D399 !important; }
-        .nav-links {
-            display: flex;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            gap: 24px;
-        }
-        .nav-link-item {
-            color: #CBD5E1;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding: 6px 10px;
-            border-radius: 6px;
-            transition: all 0.15s ease;
-        }
-        .nav-link-item:hover, .nav-link-item.active {
-            color: #FFFFFF;
-            background: rgba(255, 255, 255, 0.08);
-        }
-        .coin-pill {
-            background: rgba(254, 240, 138, 0.15);
-            border: 1px solid rgba(250, 204, 21, 0.4);
-            color: #FACC15;
-            padding: 6px 14px;
-            border-radius: 999px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            text-decoration: none;
-        }
-        .coin-pill:hover {
-            color: #FEF08A;
-            background: rgba(254, 240, 138, 0.25);
-        }
-        .user-pill-wrap {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        .user-pill {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            padding: 4px 12px 4px 6px;
-            border-radius: 999px;
-            cursor: pointer;
-            text-decoration: none;
-            color: #FFFFFF;
-        }
-        .user-avatar-circle {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            overflow: hidden;
-            background: #334155;
-        }
-        .avatar-img-fit {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .user-name-text {
-            font-size: 0.88rem;
-            font-weight: 600;
-        }
-        .btn-auth-login {
-            color: #FFFFFF;
-            text-decoration: none;
-            font-weight: 600;
-            padding: 8px 16px;
-            font-size: 0.9rem;
-        }
-        .btn-auth-register {
-            background: #10B981;
-            color: #FFFFFF;
-            text-decoration: none;
-            font-weight: 700;
-            padding: 8px 18px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            transition: background 0.15s;
-        }
-        .btn-auth-register:hover {
-            background: #059669;
-            color: #FFFFFF;
-        }
-        .app-footer {
-            background: #0F1D33;
-            color: #94A3B8;
-            padding: 40px 20px 20px;
-            margin-top: 60px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .footer-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        @@media (max-width: 900px) {
-            .navbar-container {
-                flex-wrap: wrap;
-                gap: 12px;
-            }
-            .edu-main-nav {
-                order: 3;
-                width: 100%;
-                overflow-x: auto;
-                padding-bottom: 4px;
-                -webkit-overflow-scrolling: touch;
-            }
-            .nav-links {
-                gap: 10px;
-            }
-            .nav-link-item {
-                font-size: 0.85rem;
-                padding: 4px 8px;
-                white-space: nowrap;
-            }
-        }
-    </style>
 </head>
 <body>
-    <!-- Top Navbar -->
-    <header class="app-navbar">
-        <div class="navbar-container">
-            <!-- Brand Logo -->
-            <a href="/" class="brand-logo">
-                <div class="brand-icon-mockup">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 19.5V4.5C4 3.4 4.9 2.5 6 2.5H18C19.1 2.5 20 3.4 20 4.5V19.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M4 19.5C4 18.4 4.9 17.5 6 17.5H20" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M9 7H15" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M9 11H13" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <span class="brand-text-logo">
-                    <span class="text-white">Edu</span><span class="text-emerald">Clash</span>
-                </span>
+    <partial name="_Icons" />
+    <a class="skip-link visually-hidden-focusable" href="#main">Bỏ qua, tới nội dung chính</a>
+
+    <header class="topbar">
+        <div class="wrap topbar__inner">
+            <a href="/" class="brand" aria-label="EduClash, về trang chủ">
+                <svg class="brand__mark" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+                    <rect width="16" height="16" fill="#22395E" />
+                    <rect x="2" y="4" width="5" height="8" fill="#F5B70A" />
+                    <rect x="9" y="4" width="5" height="8" fill="#F5B70A" />
+                    <rect x="7" y="5" width="2" height="8" fill="#B98500" />
+                    <rect x="3" y="6" width="3" height="1" fill="#0F1D33" />
+                    <rect x="3" y="8" width="2" height="1" fill="#0F1D33" />
+                    <rect x="10" y="6" width="3" height="1" fill="#0F1D33" />
+                    <rect x="10" y="8" width="3" height="1" fill="#0F1D33" />
+                    <rect x="11" y="1" width="2" height="5" fill="#10B981" />
+                    <rect x="11" y="6" width="1" height="1" fill="#10B981" />
+                </svg>
+                <span>Edu<span class="brand__clash">Clash</span></span>
             </a>
 
-            <!-- Navigation Links -->
-            <nav class="edu-main-nav">
-                <ul class="nav-links">
-                    <li><a href="/" class="nav-link-item">Study</a></li>
-                    <li><a href="/Home/Quizzed" class="nav-link-item">Quizzed</a></li>
-                    <li><a href="/Home/Arena" class="nav-link-item text-warning fw-bold" style="background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.4);">⚔️ Arena (Đấu Trí)</a></li>
-                    <li><a href="/Home/Subjects" class="nav-link-item">Môn Học</a></li>
-                    <li><a href="/Home/Leaderboard" class="nav-link-item">Bảng Xếp Hạng</a></li>
-                    @if (AuthService.CurrentUser != null)
-                    {
-                        <li><a href="/Outline/Import" class="nav-link-item text-emerald">+ Thêm Đề Cương</a></li>
-                    }
-                </ul>
+            <nav class="mainnav" aria-label="Điều hướng chính">
+                <a href="/" aria-current="@Cur(onOutlines)"><svg class="icon" aria-hidden="true"><use href="#i-book" /></svg>Đề cương</a>
+                <a href="/Home/Quizzed" aria-current="@Cur(onQuizzes)"><svg class="icon" aria-hidden="true"><use href="#i-quiz" /></svg>Trắc nghiệm</a>
+                <a href="/Home/Arena" class="mainnav__arena" aria-current="@Cur(onArena)"><svg class="icon" aria-hidden="true"><use href="#i-swords" /></svg>Đấu trường</a>
+                <a href="/Home/Subjects" aria-current="@Cur(onSubjects)"><svg class="icon" aria-hidden="true"><use href="#i-grid" /></svg>Môn học</a>
+                <a href="/Home/Leaderboard" aria-current="@Cur(onBoard)"><svg class="icon" aria-hidden="true"><use href="#i-trophy" /></svg>Xếp hạng</a>
             </nav>
 
-            <!-- User Authentication Section -->
-            <div class="user-pill-wrap">
-                @if (AuthService.CurrentUser != null)
+            <div class="topbar__user">
+                @if (user != null)
                 {
-                    <a href="/Auth/Profile" class="coin-pill" title="Ví Xu EduClash">
-                        🪙 <span>@AuthService.CurrentUser.Coins Xu</span>
+                    <a href="/Auth/Profile" class="stat-pill stat-pill--coin" title="Ví xu của bạn">
+                        <svg class="icon" aria-hidden="true"><use href="#i-coin" /></svg>
+                        <span class="num">@user.Coins</span><span class="visually-hidden"> xu</span>
                     </a>
-                    
+                    <a href="/Home/Leaderboard" class="stat-pill stat-pill--elo" title="Điểm Elo đấu trường">
+                        <svg class="icon" aria-hidden="true"><use href="#i-bolt" /></svg>
+                        <span class="num">@user.Rating</span><span class="visually-hidden"> Elo</span>
+                    </a>
                     <div class="dropdown">
-                        <a href="#" class="user-pill dropdown-toggle" id="userMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="user-avatar-circle">
-                                <img src="@(string.IsNullOrEmpty(AuthService.CurrentUser.AvatarUrl) ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=64&q=80" : AuthService.CurrentUser.AvatarUrl)" 
-                                     alt="Avatar" class="avatar-img-fit" />
-                            </div>
-                            <span class="user-name-text">@AuthService.CurrentUser.DisplayName</span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenuDropdown">
-                            <li class="px-3 py-2 border-bottom">
-                                <div class="fw-bold">@AuthService.CurrentUser.DisplayName</div>
-                                <div class="text-muted small">@AuthService.CurrentUser.Email</div>
-                                <span class="badge bg-success mt-1">@AuthService.CurrentUser.Role</span>
+                        <button type="button" class="user-btn" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Tài khoản: @user.DisplayName">
+                            <span class="avatar">
+                                @if (!string.IsNullOrEmpty(user.AvatarUrl))
+                                {
+                                    <img src="@user.AvatarUrl" alt="" />
+                                }
+                                else
+                                {
+                                    @(string.IsNullOrEmpty(user.DisplayName) ? "?" : user.DisplayName.Substring(0, 1).ToUpper())
+                                }
+                            </span>
+                            <span class="user-btn__name">@user.DisplayName</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                            <li class="dropdown-header-card">
+                                <strong>@user.DisplayName</strong>
+                                <span>@user.Email</span>
                             </li>
-                            <li><a class="dropdown-item py-2" href="/Auth/Profile">👤 Hồ sơ cá nhân</a></li>
-                            <li><a class="dropdown-item py-2" href="/Outline/MyOutlines">📑 Quản lý đề cương của tôi</a></li>
-                            <li><a class="dropdown-item py-2" href="/Outline/Import">📤 Tải lên đề cương</a></li>
+                            <li><a class="dropdown-item" href="/Auth/Profile"><svg class="icon" aria-hidden="true"><use href="#i-user" /></svg>Hồ sơ của tôi</a></li>
+                            <li><a class="dropdown-item" href="/Outline/MyOutlines"><svg class="icon" aria-hidden="true"><use href="#i-file" /></svg>Đề tôi đã đăng</a></li>
+                            <li><a class="dropdown-item" href="/Outline/Import"><svg class="icon" aria-hidden="true"><use href="#i-upload" /></svg>Tải đề lên</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item py-2 text-danger" href="/Auth/Logout">🚪 Đăng xuất</a></li>
+                            <li><a class="dropdown-item text-danger" href="/Auth/Logout"><svg class="icon" aria-hidden="true"><use href="#i-logout" /></svg>Đăng xuất</a></li>
                         </ul>
                     </div>
                 }
                 else
                 {
-                    <a href="/Auth/Login" class="btn-auth-login">Đăng nhập</a>
-                    <a href="/Auth/Register" class="btn-auth-register">Đăng ký</a>
+                    <a href="/Auth/Login" class="btn-arcade btn-arcade--ghost btn-arcade--sm btn-hide-sm">Đăng nhập</a>
+                    <a href="/Auth/Register" class="btn-arcade btn-arcade--gold btn-arcade--sm">Đăng ký nhận 50 xu</a>
                 }
             </div>
         </div>
     </header>
 
-    <!-- Global Alerts (Success / Error messages) -->
-    @if (TempData["SuccessMessage"] != null)
+    @if (TempData["SuccessMessage"] != null || TempData["ErrorMessage"] != null)
     {
-        <div class="container mt-3">
-            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-                <strong>Thành công!</strong> @TempData["SuccessMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        </div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="container mt-3">
-            <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-                <strong>Thông báo:</strong> @TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
+        <div class="wrap">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="flash flash--ok alert fade show" role="status">
+                    <svg class="icon" aria-hidden="true"><use href="#i-check" /></svg>
+                    <span>@TempData["SuccessMessage"]</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng thông báo"></button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="flash flash--err alert fade show" role="alert">
+                    <svg class="icon" aria-hidden="true"><use href="#i-alert" /></svg>
+                    <span>@TempData["ErrorMessage"]</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng thông báo"></button>
+                </div>
+            }
         </div>
     }
 
-    <!-- Main Page Body -->
-    <main role="main">
+    <main id="main" tabindex="-1">
         @RenderBody()
     </main>
 
-    <!-- Footer -->
-    <footer class="app-footer">
-        <div class="footer-container">
-            <div>
-                <strong class="text-white">EduClash</strong> — Nền tảng ôn thi &amp; Quản lý đề cương đại học.
-            </div>
-            <div class="small">
-                © 2026 EduClash Project. ASP.NET Core MVC High-Performance Edition.
-            </div>
+    <footer class="site-footer">
+        <div class="wrap site-footer__inner">
+            <p class="m-0"><strong>EduClash</strong> · Ôn đề cương, luyện trắc nghiệm, đấu trí 1 vs 1.</p>
+            <p class="m-0">© 2026 Nhóm Qua Môn Two · Học phần Quản lý dự án CNTT</p>
         </div>
     </footer>
 
-    <!-- Bootstrap 5 JS Bundle -->
+    <nav class="tabbar" aria-label="Điều hướng nhanh">
+        <a href="/" aria-current="@Cur(onOutlines)"><svg class="icon" aria-hidden="true"><use href="#i-book" /></svg>Đề cương</a>
+        <a href="/Home/Quizzed" aria-current="@Cur(onQuizzes)"><svg class="icon" aria-hidden="true"><use href="#i-quiz" /></svg>Trắc nghiệm</a>
+        <a href="/Home/Arena" class="tabbar__arena" aria-current="@Cur(onArena)"><svg class="icon" aria-hidden="true"><use href="#i-swords" /></svg>Đấu</a>
+        <a href="/Home/Leaderboard" aria-current="@Cur(onBoard)"><svg class="icon" aria-hidden="true"><use href="#i-trophy" /></svg>Xếp hạng</a>
+        <a href="@(user != null ? "/Auth/Profile" : "/Auth/Login")" aria-current="@Cur(onMe)"><svg class="icon" aria-hidden="true"><use href="#i-user" /></svg>@(user != null ? "Tôi" : "Đăng nhập")</a>
+    </nav>
+
+    <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/drag-scroll.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

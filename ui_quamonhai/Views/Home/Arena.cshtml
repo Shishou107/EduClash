@@ -1,469 +1,270 @@
 @{
-    ViewData["Title"] = "Đấu Trí — Đấu Trường Tri Thức EduClash";
+    ViewData["Title"] = "Đấu trường · EduClash";
     var userProfile = ViewBag.CurrentUser as UserProfileViewModel;
     var subjects = ViewBag.Subjects as List<SubjectViewModel> ?? new List<SubjectViewModel>();
     var quizzes = ViewBag.Quizzes as List<ContentItemViewModel> ?? new List<ContentItemViewModel>();
 }
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+@section Styles {
+    <link rel="stylesheet" href="~/css/arena.css" asp-append-version="true" />
+}
 
-<div class="pvp-wrapper py-4">
+<div class="wrap">
+<div class="arena">
 
-    <!-- =========================================================================
-         1. MÀN HÌNH SẢNH CHỜ (LOBBY)
-         ========================================================================= -->
-    <div id="lobbyScreen" class="lobby-card">
-        <div class="text-center mb-4">
-            <span class="arena-top-icon">⚔️</span>
-            <h2 class="mt-2 text-navy fw-bold">Đấu Trí — Đấu Trường Tri Thức</h2>
-            <p class="text-muted">Thách đấu so tài kiến thức trực tiếp, kiểm tra tốc độ phản xạ và bứt phá thứ hạng Elo chuẩn thể thao điện tử.</p>
-        </div>
-
-        <!-- Profile Người chơi -->
-        <div class="player-card-preview mb-4">
-            <div class="d-flex align-items-center gap-3">
-                <div class="user-avatar-box">
-                    @if (!string.IsNullOrEmpty(userProfile?.AvatarUrl))
-                    {
-                        <img src="@userProfile.AvatarUrl" alt="Avatar" class="avatar-img" />
-                    }
-                    else
-                    {
-                        <span>@(string.IsNullOrEmpty(userProfile?.DisplayName) ? "U" : userProfile.DisplayName.Substring(0, 1).ToUpper())</span>
-                    }
-                </div>
-                <div>
-                    <h4 class="mb-0 text-dark fw-bold">@(userProfile?.DisplayName ?? "Đấu thủ Khách")</h4>
-                    <span class="text-muted small">Cấp @(userProfile?.Level ?? 1) • Rank: @(userProfile?.RankTier ?? "Đồng")</span>
-                </div>
+    <!-- 1. SẢNH CHỜ -->
+    <div id="lobbyScreen">
+        <header class="page-head">
+            <ol class="crumbs" aria-label="Vị trí">
+                <li><a href="/">Trang chủ</a></li>
+                <li aria-current="page">Đấu trường</li>
+            </ol>
+            <h1>Đấu trường 1 vs 1</h1>
+            <p class="page-head__lede">Chọn một bộ đề, mời bạn vào phòng rồi so tài. Trả lời đúng là bắn trúng đối thủ. Ai còn nhiều máu hơn sau 20 câu thì thắng.</p>
+            <div class="arena-rules" aria-label="Luật chơi">
+                <span class="chip chip--red"><svg class="icon" aria-hidden="true"><use href="#i-heart" /></svg><span class="num">200</span>&nbsp;HP mỗi bên</span>
+                <span class="chip chip--green"><svg class="icon" aria-hidden="true"><use href="#i-target" /></svg>Đúng: bắn <span class="num">-20</span>&nbsp;HP</span>
+                <span class="chip chip--gold"><svg class="icon" aria-hidden="true"><use href="#i-clock" /></svg><span class="num">15</span>&nbsp;giây mỗi câu</span>
+                <span class="chip"><svg class="icon" aria-hidden="true"><use href="#i-quiz" /></svg>Tối đa <span class="num">20</span>&nbsp;câu</span>
             </div>
-            <div class="text-end">
-                <div class="fw-bold fs-4 text-warning">⚡ @(userProfile?.Rating ?? 1000) Elo</div>
-                <span class="text-success small fw-semibold">Thắng: @(userProfile?.Wins ?? 0) | Thua: @(userProfile?.Losses ?? 0) | Xu: @(userProfile?.Coins ?? 50) 🪙</span>
-            </div>
-        </div>
+        </header>
 
-        <!-- Chọn Chế Độ Thi Đấu -->
-        <div class="mb-4">
-            <label class="form-label fw-bold mb-2">Chế Độ Thi Đấu:</label>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="game-mode-card active">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="mode-icon">⚔️</span>
-                            <span class="mode-badge ready">● Khả dụng</span>
-                        </div>
-                        <div class="mode-title">Đấu 1 vs 1 (Pixel Duel 200 HP)</div>
-                        <p class="mode-desc">200 HP đối kháng, mỗi phát đạn đúng -20 HP. Bên nào hết máu trước hoặc ít máu hơn khi hết câu sẽ thua cuộc!</p>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="game-mode-card opacity-75">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="mode-icon">👑</span>
-                            <span class="mode-badge coming-soon">⏳ Sắp ra mắt</span>
-                        </div>
-                        <div class="mode-title">Đấu Nhiều Người (Multiplayer)</div>
-                        <p class="mode-desc">Đấu trường hỗn chiến 4 - 8 người hoặc thi đấu theo phòng riêng giữa các lớp.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- BƯỚC 1: CHỌN MÔN HỌC -->
-        <div class="mb-4">
-            <label class="form-label fw-bold mb-2">1. Chọn Môn Học Thách Đấu: <span class="text-danger">*</span></label>
-            <select id="selectSubject" class="form-select py-2">
-                @foreach (var s in subjects)
-                {
-                    <option value="@s.SubjectId" data-code="@s.Code" data-name="@s.Name">
-                        📘 [@s.Code] @s.Name
-                    </option>
-                }
-            </select>
-        </div>
-
-        <!-- BƯỚC 2: CHỌN BỘ ĐỀ THÁCH ĐẤU TRONG MÔN HỌC (ĐỀ IMPORT) -->
-        <div class="mb-4" id="quizSelectSection">
-            <div class="d-flex align-items-center justify-content-between mb-2">
-                <label class="form-label fw-bold mb-0">2. Chọn Đề Thi Đấu (Đề được Import): <span class="text-danger">*</span></label>
-                <span class="badge bg-primary px-3 py-1" id="quizCountBadge">0 đề import</span>
-            </div>
-
-            <!-- Ô TÌM KIẾM ĐỀ THI TRỰC TIẾP -->
-            <div class="input-group mb-2" id="quizSearchGroup">
-                <span class="input-group-text bg-white border-end-0 text-muted">🔍</span>
-                <input type="text" id="searchQuizInput" class="form-control border-start-0 ps-0" placeholder="Tìm kiếm tên đề thi, người import (bản thân / người khác), thẻ tag..." autocomplete="off" />
-                <button class="btn btn-outline-secondary" type="button" id="btnClearSearchQuiz" style="display:none;" title="Xóa tìm kiếm">✕</button>
-            </div>
-
-            <!-- DROPDOWN CHỌN ĐỀ THI -->
-            <select id="selectQuiz" class="form-select py-2">
-                <!-- Được cập nhật tự động khi chọn môn hoặc tìm kiếm -->
-            </select>
-
-            <!-- THẺ XEM TRƯỚC BỘ ĐỀ ĐÃ CHỌN -->
-            <div id="selectedQuizPreviewCard" class="card border-success-subtle bg-light mt-2 p-3 d-none">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+        @if (userProfile != null)
+        {
+            <section class="game-panel player-card" aria-label="Thông tin của bạn">
+                <div class="player-card__who">
+                    <span class="avatar">
+                        @if (!string.IsNullOrEmpty(userProfile.AvatarUrl))
+                        {
+                            <img src="@userProfile.AvatarUrl" alt="" />
+                        }
+                        else
+                        {
+                            @UiHelpers.Initial(userProfile.DisplayName)
+                        }
+                    </span>
                     <div>
-                        <div class="fw-bold text-dark fs-6" id="previewQuizTitle">Tên đề thi</div>
-                        <div class="small text-muted mt-1 d-flex gap-2 align-items-center flex-wrap">
-                            <span id="previewQuizAuthor" class="badge bg-secondary">Tác giả</span>
-                            <span id="previewQuizDiff" class="text-muted">Độ khó: Medium</span>
-                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle">🎲 Tự động bốc ngẫu nhiên 20 câu khi vào trận</span>
-                        </div>
+                        <h2>@userProfile.DisplayName</h2>
+                        <p>Cấp @userProfile.Level · Hạng @userProfile.RankTier</p>
                     </div>
-                    <span class="badge bg-success px-3 py-2 fw-bold">✓ Đã Sẵn Sàng Vào Đấu</span>
                 </div>
-            </div>
-            
-            <!-- THÔNG BÁO KHI MÔN CHƯA CÓ ĐỀ ĐƯỢC IMPORT -->
-            <div id="noQuizAlert" class="alert alert-danger border-2 border-danger-subtle d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between p-3 rounded-3 mt-3 gap-3 d-none">
-                <div class="d-flex align-items-center gap-3">
-                    <span class="fs-1">🚫</span>
+                <dl class="player-card__stats">
+                    <div><dt>Elo</dt><dd class="is-elo">@userProfile.Rating</dd></div>
+                    <div><dt>Thắng/Thua</dt><dd>@userProfile.Wins/@userProfile.Losses</dd></div>
+                    <div><dt>Xu</dt><dd class="is-coin">@userProfile.Coins</dd></div>
+                </dl>
+            </section>
+        }
+        else
+        {
+            <section class="game-panel player-card player-card--guest" aria-label="Bạn đang chơi với tư cách khách">
+                <div class="player-card__who">
+                    <span class="avatar"><svg class="icon" aria-hidden="true"><use href="#i-user" /></svg></span>
                     <div>
-                        <div class="fw-bold text-danger fs-6" id="noQuizTitle">Môn này chưa có bộ đề thi nào được import!</div>
-                        <div class="small text-muted">
-                            Đấu trường yêu cầu phải có đề thi thực tế (được import từ bản thân hoặc người khác) mới được thi đấu để lấy ngẫu nhiên 20 câu hỏi. Hiện tại không có đề thi nào nên <strong>KHÔNG ĐƯỢC PHÉP THI ĐẤU</strong>. Bạn có thể tự import tài liệu đề thi vào.
-                        </div>
+                        <h2>Bạn đang chơi với tư cách khách</h2>
+                        <p>Vẫn vào trận được, nhưng Elo và xu chỉ được lưu khi bạn đăng nhập.</p>
                     </div>
                 </div>
-                <a href="/Outline/Import" class="btn btn-danger fw-bold text-white text-nowrap px-3 py-2 shadow-sm">
-                    📥 Import Đề Thi / Đề Cương &rarr;
-                </a>
-            </div>
-        </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="/Auth/Login?returnUrl=%2FHome%2FArena" class="btn-arcade btn-arcade--ghost btn-arcade--sm">Đăng nhập</a>
+                    <a href="/Auth/Register" class="btn-arcade btn-arcade--gold btn-arcade--sm">Đăng ký nhận 50 xu</a>
+                </div>
+            </section>
+        }
 
-        <!-- KHU VỰC VÀO ĐẤU TRƯỜNG -->
-        <div class="arena-match-actions mt-4 pt-4 border-top">
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <div class="action-card p-3 text-center h-100 d-flex flex-column justify-content-between">
-                        <div>
-                            <span class="fs-1 mb-2 d-inline-block">⚡</span>
-                            <h5 class="fw-bold text-dark">Ghép Nhanh</h5>
-                            <p class="small text-muted">Tự động tìm kiếm đối thủ đang trực tuyến hoặc so tài cùng AI Bot.</p>
-                        </div>
-                        <button type="button" class="btn btn-success fw-bold w-100 py-2 mt-3" id="btnQuickMatch">
-                            ⚔️ Tìm Trận Ngay
-                        </button>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="action-card p-3 text-center h-100 d-flex flex-column justify-content-between">
-                        <div>
-                            <span class="fs-1 mb-2 d-inline-block">🏠</span>
-                            <h5 class="fw-bold text-dark">Tạo Phòng Riêng</h5>
-                            <p class="small text-muted">Tạo phòng và nhận mã mời 6 chữ số để thách đấu cùng bạn bè.</p>
-                        </div>
-                        <button type="button" class="btn btn-outline-primary fw-bold w-100 py-2 mt-3" id="btnCreateRoom">
-                            + Tạo Mã Phòng
-                        </button>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="action-card p-3 text-center h-100 d-flex flex-column justify-content-between">
-                        <div>
-                            <span class="fs-1 mb-2 d-inline-block">🔑</span>
-                            <h5 class="fw-bold text-dark">Nhập Mã Phòng</h5>
-                            <p class="small text-muted">Nhập mã phòng do bạn bè chia sẻ để tham gia thách đấu.</p>
-                        </div>
-                        <div class="input-group mt-3">
-                            <input type="text" id="inputRoomCode" class="form-control text-uppercase font-monospace text-center fw-bold" placeholder="VD: EDU-8924" maxlength="25" autocomplete="off" />
-                            <button class="btn btn-primary fw-bold px-3" type="button" id="btnJoinRoom">Vào ➔</button>
-                        </div>
-                    </div>
-                </div>
+        <section class="panel setup" aria-label="Chọn đề thi đấu">
+            <div class="setup__step">
+                <div class="setup__label"><label for="selectSubject"><span class="step-no">1</span>Chọn môn</label></div>
+                <select id="selectSubject" class="form-select">
+                    @foreach (var s in subjects)
+                    {
+                        <option value="@s.SubjectId" data-code="@s.Code" data-name="@s.Name">@s.Code · @s.Name</option>
+                    }
+                </select>
             </div>
-        </div>
 
-        <!-- Box chờ tạo phòng (Ẩn ban đầu) -->
-        <div id="createdRoomBox" class="created-room-box text-center p-4 mt-4 d-none">
-            <span class="badge bg-success px-3 py-1 mb-2 fw-bold">🟢 PHÒNG ĐẤU ĐÃ SẴN SÀNG</span>
-            <h4 class="fw-bold text-dark mt-2">Mã Phòng Của Bạn:</h4>
-            <div class="d-flex align-items-center justify-content-center gap-2 my-3">
-                <input type="text" id="displayRoomCode" class="room-code-badge form-control text-center text-primary fw-bold font-monospace" style="max-width: 240px; font-size: 1.4rem; cursor: pointer;" readonly onclick="this.select();" value="EDU-9921" />
-                <button type="button" class="btn btn-outline-primary px-3 py-2 fw-semibold" id="btnCopyCode">📋 Sao chép</button>
+            <div class="setup__step" id="quizSelectSection">
+                <div class="setup__label">
+                    <label for="selectQuiz"><span class="step-no">2</span>Chọn bộ đề</label>
+                    <span class="chip chip--blue" id="quizCountBadge">0 bộ đề</span>
+                </div>
+
+                <div class="search quiz-search" id="quizSearchGroup">
+                    <svg class="icon" aria-hidden="true"><use href="#i-search" /></svg>
+                    <label for="searchQuizInput" class="visually-hidden">Lọc bộ đề</label>
+                    <input type="search" id="searchQuizInput" placeholder="Lọc theo tên đề, người đăng hoặc tag" autocomplete="off" />
+                    <button type="button" class="clear-btn" id="btnClearSearchQuiz" style="display:none" aria-label="Xoá từ khoá">
+                        <svg class="icon" aria-hidden="true"><use href="#i-x" /></svg>
+                    </button>
+                </div>
+
+                <select id="selectQuiz" class="form-select"></select>
+
+                <div id="selectedQuizPreviewCard" class="quiz-preview d-none">
+                    <div>
+                        <strong id="previewQuizTitle">Tên bộ đề</strong>
+                        <div class="quiz-preview__meta">
+                            <span id="previewQuizAuthor" class="chip">Người đăng</span>
+                            <span id="previewQuizDiff" class="chip">Độ khó</span>
+                            <span class="chip chip--blue">Lấy ngẫu nhiên tối đa 20 câu</span>
+                        </div>
+                    </div>
+                    <span class="quiz-preview__ready"><svg class="icon" aria-hidden="true"><use href="#i-check" /></svg>Sẵn sàng</span>
+                </div>
+
+                <div id="noQuizAlert" class="no-quiz d-none" role="status">
+                    <div>
+                        <strong id="noQuizTitle">Môn này chưa có bộ đề nào</strong>
+                        <p>Đấu trường cần một bộ trắc nghiệm có sẵn câu hỏi. Hãy tải một bộ đề lên hoặc chọn môn khác.</p>
+                    </div>
+                    <a href="/Outline/Import" class="btn-arcade btn-arcade--sm btn-arcade--danger"><svg class="icon" aria-hidden="true"><use href="#i-upload" /></svg>Tải bộ đề lên</a>
+                </div>
             </div>
-            <div class="d-flex align-items-center justify-content-center gap-2 text-muted mb-3">
-                <span class="spinner-border spinner-border-sm text-primary"></span>
-                <span>Đang chờ đối thủ nhập mã để vào phòng đấu...</span>
+        </section>
+
+        <section class="match-actions" aria-label="Vào trận">
+            <div class="match-card match-card--main">
+                <h3><svg class="icon" aria-hidden="true"><use href="#i-users" /></svg>Tạo phòng, mời bạn</h3>
+                <p>Nhận mã phòng rồi gửi cho bạn. Trận bắt đầu ngay khi bạn ấy vào.</p>
+                <button type="button" class="btn-arcade btn-arcade--gold btn-arcade--block" id="btnCreateRoom">Tạo mã phòng</button>
             </div>
-            <p class="text-muted small">Hãy gửi mã này cho bạn bè. Khi bạn bè nhập mã và xác nhận, cả 2 sẽ tự động vào phòng đấu ngay!</p>
-            <button type="button" class="btn btn-danger px-4" id="btnCancelRoom">✕ Hủy phòng</button>
-        </div>
+            <div class="match-card">
+                <h3><svg class="icon" aria-hidden="true"><use href="#i-key" /></svg>Vào bằng mã</h3>
+                <p>Bạn bè đã tạo phòng? Nhập mã họ gửi, ví dụ EDU-8924.</p>
+                <div class="room-input">
+                    <label for="inputRoomCode" class="visually-hidden">Mã phòng</label>
+                    <input type="text" id="inputRoomCode" class="form-control" placeholder="EDU-8924" maxlength="25" autocomplete="off" />
+                    <button class="btn-arcade" type="button" id="btnJoinRoom">Vào</button>
+                </div>
+            </div>
+            <div class="match-card">
+                <h3><svg class="icon" aria-hidden="true"><use href="#i-bot" /></svg>Đấu tập với bot</h3>
+                <p>Luyện tốc độ trả lời. Bot không bắn trả và trận tập không tính Elo.</p>
+                <button type="button" class="btn-arcade btn-arcade--block" id="btnQuickMatch">Vào trận tập</button>
+            </div>
+        </section>
+
+        <section id="createdRoomBox" class="game-panel room-wait d-none" aria-live="polite">
+            <h3>Phòng đã sẵn sàng. Gửi mã này cho bạn:</h3>
+            <div class="room-code">
+                <label for="displayRoomCode" class="visually-hidden">Mã phòng của bạn</label>
+                <input type="text" id="displayRoomCode" readonly value="" />
+                <button type="button" class="btn-arcade btn-arcade--ghost" id="btnCopyCode"><svg class="icon" aria-hidden="true"><use href="#i-copy" /></svg>Sao chép</button>
+            </div>
+            <span class="room-wait__status">Đang chờ đối thủ nhập mã…</span>
+            <button type="button" class="btn-arcade btn-arcade--danger btn-arcade--sm" id="btnCancelRoom"><svg class="icon" aria-hidden="true"><use href="#i-x" /></svg>Huỷ phòng</button>
+        </section>
     </div>
 
-    <!-- =========================================================================
-         2. MÀN HÌNH ĐẤU SÚNG PIXEL ART (BATTLEFIELD)
-         ========================================================================= -->
-    <div id="battleScreen" class="pixel-arena-container d-none">
-        
-        <!-- Top bar điều khiển -->
-        <div class="pixel-arena-top-bar d-flex justify-content-between align-items-center px-3 py-2">
-            <div class="d-flex align-items-center gap-2">
-                <span class="pixel-mode-pill">⚔️ 1 VS 1 ĐẤU TRÍ PIXEL</span>
-                <span class="text-white-50 small" id="battleSubjectInfo">| Môn Học</span>
+    <!-- 2. TRẬN ĐẤU PIXEL -->
+    <section id="battleScreen" class="pixel-arena-container d-none" aria-label="Trận đấu">
+        <div class="pixel-arena-top-bar">
+            <div class="d-flex align-items-center gap-2 top-bar-info">
+                <span class="pixel-mode-pill">1 VS 1</span>
+                <span id="battleSubjectInfo">Môn học</span>
             </div>
-            <button class="pixel-btn-action btn-surrender" type="button" id="btnSurrender">
-                🚪 Rời Trận
-            </button>
+            <button class="pixel-btn-action" type="button" id="btnSurrender"><svg class="icon" aria-hidden="true"><use href="#i-flag" /></svg>Rời trận</button>
         </div>
 
-        <!-- Banner Câu hỏi Pixel -->
         <div class="pixel-top-banner">
-            <div class="pixel-banner-inner">
-                <span class="pixel-gold-label" id="questionNumberLabel">CÂU 1/10: </span>
-                <span class="pixel-question-text" id="questionText">Đang chuẩn bị câu hỏi...</span>
+            <div class="pixel-banner-inner" aria-live="polite">
+                <span class="pixel-gold-label" id="questionNumberLabel">CAU 1/20</span>
+                <span class="pixel-question-text" id="questionText">Đang chuẩn bị câu hỏi…</span>
             </div>
         </div>
 
-        <!-- Chiến trường Pixel -->
-        <div class="pixel-battlefield">
-            <div class="pixel-sky-elements">
-                <div class="pixel-cloud cloud-pos-1"></div>
-                <div class="pixel-cloud cloud-pos-2"></div>
-            </div>
+        <div class="pixel-battlefield" aria-hidden="true">
             <div class="pixel-hills-backdrop"></div>
             <div class="pixel-scenery-tree tree-left"><div class="tree-foliage"></div><div class="tree-trunk"></div></div>
             <div class="pixel-scenery-tree tree-right"><div class="tree-foliage"></div><div class="tree-trunk"></div></div>
 
-            <!-- ĐẤU THỦ 1 (BẠN - XANH DƯƠNG) -->
             <div class="pixel-fighter-station station-left">
                 <div class="fighter-header">
-                    <span class="fighter-tag-title" id="p1NameTag">BẠN • 200/200 HP</span>
-                    <div class="pixel-health-bar-frame">
-                        <div class="pixel-health-bar-fill fill-green" id="p1HealthFill" style="width: 100%;"></div>
-                    </div>
+                    <span class="fighter-tag-title" id="p1NameTag">BAN · 200/200 HP</span>
+                    <div class="pixel-health-bar-frame"><div class="pixel-health-bar-fill fill-green" id="p1HealthFill"></div></div>
                 </div>
-                <div class="floating-damage-popup popup-left d-none" id="damagePop1">-20 HP</div>
-                <div class="pixel-guy-model blue-guy act-idle" id="guy1">
+                <div class="floating-damage-popup d-none" id="damagePop1">-20 HP</div>
+                <div class="pixel-guy-model" id="guy1">
                     <div class="guy-head head-blue"><div class="guy-eyes"><span class="eye-dot"></span><span class="eye-dot"></span></div></div>
                     <div class="guy-torso torso-blue"></div>
-                    <div class="guy-legs"><span class="leg-pixel leg-blue"></span><span class="leg-pixel leg-blue"></span></div>
-                    <div class="guy-gun-arm arm-right"><div class="pixel-pistol pistol-right"><div class="pixel-muzzle-flash flash-right d-none" id="flash1"></div></div></div>
+                    <div class="guy-legs"><span class="leg-pixel"></span><span class="leg-pixel"></span></div>
+                    <div class="guy-gun-arm arm-right"><div class="pixel-pistol"><div class="pixel-muzzle-flash flash-right d-none" id="flash1"></div></div></div>
                 </div>
             </div>
 
-            <!-- VIÊN ĐẠN BAY -->
-            <div class="pixel-flying-bullet bullet-move-right d-none" id="bullet1"><div class="bullet-sparkle"></div></div>
-            <div class="pixel-flying-bullet bullet-move-left d-none" id="bullet2"><div class="bullet-sparkle"></div></div>
+            <div class="pixel-flying-bullet bullet-move-right d-none" id="bullet1"></div>
+            <div class="pixel-flying-bullet bullet-move-left d-none" id="bullet2"></div>
 
-            <!-- ĐẤU THỦ 2 (ĐỐI THỦ - ĐỎ) -->
             <div class="pixel-fighter-station station-right">
                 <div class="fighter-header">
-                    <span class="fighter-tag-title" id="p2NameTag">ĐỐI THỦ • 200/200 HP</span>
-                    <div class="pixel-health-bar-frame">
-                        <div class="pixel-health-bar-fill fill-red" id="p2HealthFill" style="width: 100%;"></div>
-                    </div>
+                    <span class="fighter-tag-title" id="p2NameTag">DOI THU · 200/200 HP</span>
+                    <div class="pixel-health-bar-frame"><div class="pixel-health-bar-fill fill-red" id="p2HealthFill"></div></div>
                 </div>
-                <div class="floating-damage-popup popup-right d-none" id="damagePop2">-20 HP</div>
-                <div class="pixel-guy-model red-guy act-idle" id="guy2">
+                <div class="floating-damage-popup d-none" id="damagePop2">-20 HP</div>
+                <div class="pixel-guy-model" id="guy2">
                     <div class="guy-head head-red"><div class="guy-eyes"><span class="eye-dot"></span><span class="eye-dot"></span></div></div>
                     <div class="guy-torso torso-red"></div>
-                    <div class="guy-legs"><span class="leg-pixel leg-red"></span><span class="leg-pixel leg-red"></span></div>
-                    <div class="guy-gun-arm arm-left"><div class="pixel-pistol pistol-left"><div class="pixel-muzzle-flash flash-left d-none" id="flash2"></div></div></div>
+                    <div class="guy-legs"><span class="leg-pixel"></span><span class="leg-pixel"></span></div>
+                    <div class="guy-gun-arm arm-left"><div class="pixel-pistol"><div class="pixel-muzzle-flash flash-left d-none" id="flash2"></div></div></div>
                 </div>
             </div>
 
-            <div class="pixel-grass-floor"><div class="grass-tuft tuft-1"></div><div class="grass-tuft tuft-2"></div><div class="grass-tuft tuft-3"></div></div>
+            <div class="pixel-grass-floor"></div>
         </div>
 
-        <!-- BOTTOM HUD PIXEL -->
         <div class="pixel-bottom-hud">
             <div class="hud-col-left">
                 <div class="pixel-chat-console">
-                    <div class="chat-screen-window">
-                        <div class="chat-system-log" id="battleLogText">Sẵn sàng! Trả lời đúng để bắn đối thủ (-20 HP).</div>
-                    </div>
-                    <div class="chat-input-row">
-                        <span class="chat-title-text">LOG</span>
-                        <span class="chat-bubble-icon">💬</span>
-                    </div>
+                    <div class="chat-screen-window" id="battleLogText" role="log" aria-live="polite">Sẵn sàng! Trả lời đúng để bắn đối thủ.</div>
+                    <div class="chat-input-row"><span>LOG</span><span>1 VS 1</span></div>
                 </div>
-                <div class="pixel-btn-badge-1v1">1 vs 1</div>
             </div>
 
-            <!-- HỘP 4 ĐÁP ÁN -->
             <div class="hud-col-center">
                 <div class="pixel-answers-board">
-                    <div class="answers-buttons-stack" id="answersContainer">
-                        <!-- Render 4 nút A, B, C, D bằng JavaScript -->
-                    </div>
-                    <div id="waitingOpponentCard" class="pixel-waiting-opponent-card p-3 text-center d-none" style="background: rgba(15, 23, 42, 0.95); border: 2px dashed #F59E0B; border-radius: 8px;">
-                        <div class="spinner-border text-warning mb-2" style="width: 1.8rem; height: 1.8rem;" role="status"></div>
-                        <div class="fw-bold text-warning font-monospace fs-6 mb-1">⏳ ĐÃ HOÀN THÀNH TOÀN BỘ 20 CÂU HỎI!</div>
-                        <div class="text-white-50 font-monospace small">
-                            Đang chờ <strong id="waitingOpponentName" class="text-warning">đối thủ</strong> hoàn thành các câu hỏi...<br />
-                            Cả 2 sẽ cùng lúc xem kết quả tổng kết sau khi ván đấu kết thúc.
-                        </div>
+                    <div class="answers-buttons-stack" id="answersContainer"></div>
+                    <div id="waitingOpponentCard" class="waiting-card d-none" role="status">
+                        <div class="spinner-border spinner-border-sm text-warning mb-2" aria-hidden="true"></div>
+                        <div><strong>Bạn đã làm xong!</strong></div>
+                        <div>Đang chờ <strong id="waitingOpponentName">đối thủ</strong> trả lời nốt để so máu.</div>
                     </div>
                 </div>
             </div>
 
-            <!-- GÓC PHẢI: ĐỒNG HỒ ĐẾM NGƯỢC -->
             <div class="hud-col-right">
-                <button class="pixel-info-button" title="200 HP, mỗi câu đúng bắn đối thủ -20 HP">INFO</button>
-                <div class="pixel-timer-console" id="timerBox">
+                <button class="pixel-info-button" type="button" id="btnRules" aria-expanded="false" aria-controls="pixelRules">LUAT</button>
+                <div class="pixel-rules d-none" id="pixelRules">
+                    <ul>
+                        <li>Mỗi bên 200 HP.</li>
+                        <li>Đúng: bắn đối thủ -20 HP.</li>
+                        <li>Sai hoặc hết giờ: không ai bị bắn.</li>
+                    </ul>
+                </div>
+                <div class="pixel-timer-console" id="timerBox" role="timer" aria-label="Thời gian còn lại">
                     <span class="timer-value" id="battleTimerText">00:15</span>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- =========================================================================
-         3. MÀN HÌNH KẾT QUẢ TRẬN ĐẤU (RESULT SCREEN)
-         ========================================================================= -->
-    <div id="resultScreen" class="lobby-card text-center py-5 d-none">
-        <span style="font-size: 4.5rem;" id="resultIcon">🏆</span>
-        <h2 class="fw-bold mt-2" id="resultTitle">CHIẾN THẮNG TUYỆT ĐỐI!</h2>
-        <p class="text-muted" id="resultDesc">Bạn đã thi đấu xuất sắc và giành chiến thắng chung cuộc.</p>
-
-        <div class="row g-3 justify-content-center my-4" style="max-width: 600px; margin: 0 auto;">
-            <div class="col-4">
-                <div class="card p-3 border-0 shadow-sm bg-light rounded-3">
-                    <div class="text-muted small">Điểm Elo</div>
-                    <div class="fs-4 fw-bold text-success" id="resultEloText">+25 Elo</div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="card p-3 border-0 shadow-sm bg-light rounded-3">
-                    <div class="text-muted small">Máu còn lại</div>
-                    <div class="fs-4 fw-bold text-primary" id="resultHpText">160 HP</div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="card p-3 border-0 shadow-sm bg-light rounded-3">
-                    <div class="text-muted small">Số câu đúng</div>
-                    <div class="fs-4 fw-bold text-warning" id="resultScoreText">8 / 10</div>
-                </div>
-            </div>
+    <!-- 3. KẾT QUẢ -->
+    <section id="resultScreen" class="game-panel match-result d-none" aria-live="polite" tabindex="-1">
+        <svg class="icon match-result__icon" aria-hidden="true"><use id="resultIcon" href="#i-trophy" /></svg>
+        <h2 id="resultTitle">Chiến thắng!</h2>
+        <p id="resultDesc"></p>
+        <dl class="match-result__stats">
+            <div><dt>Elo</dt><dd id="resultEloText">+25</dd></div>
+            <div><dt>Máu còn lại</dt><dd id="resultHpText">200/200</dd></div>
+            <div><dt>Câu đúng</dt><dd id="resultScoreText">0/0</dd></div>
+        </dl>
+        <div class="match-result__actions">
+            <button type="button" class="btn-arcade btn-arcade--gold" id="btnPlayAgain"><svg class="icon" aria-hidden="true"><use href="#i-refresh" /></svg>Đấu trận nữa</button>
+            <a href="/Home/Leaderboard" class="btn-arcade btn-arcade--ghost"><svg class="icon" aria-hidden="true"><use href="#i-trophy" /></svg>Xem bảng xếp hạng</a>
         </div>
-
-        <div class="d-flex justify-content-center gap-3">
-            <button type="button" class="btn btn-success fw-bold px-4 py-2" id="btnPlayAgain">
-                🔄 Chơi Trận Tiếp Theo
-            </button>
-            <a href="/Home/Leaderboard" class="btn btn-outline-secondary fw-bold px-4 py-2">
-                🏆 Xem Bảng Xếp Hạng
-            </a>
-        </div>
-    </div>
+    </section>
 
 </div>
-
-<!-- CSS RETRO PIXEL STYLES GỐC ĐẦY ĐỦ -->
-<style>
-    .pvp-wrapper { max-width: 960px; margin: 0 auto; }
-    .arena-top-icon { font-size: 3.2rem; display: inline-block; }
-    .lobby-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 2.2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-    .player-card-preview { display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 1.25rem 1.75rem; }
-    .user-avatar-box { width: 48px; height: 48px; border-radius: 50%; background: #3B82F6; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: bold; overflow: hidden; }
-    .avatar-img { width: 100%; height: 100%; object-fit: cover; }
-    .game-mode-card { border: 2px solid #E2E8F0; border-radius: 14px; padding: 1.2rem; background: #FFFFFF; cursor: pointer; transition: all 0.2s; }
-    .game-mode-card.active { border-color: #10B981; background: #F0FDF4; box-shadow: 0 4px 14px rgba(16,185,129,0.15); }
-    .mode-icon { font-size: 1.6rem; }
-    .mode-badge.ready { color: #059669; font-weight: bold; font-size: 0.75rem; }
-    .mode-badge.coming-soon { color: #64748B; font-size: 0.75rem; }
-    .mode-title { font-weight: 700; color: #0F172A; margin: 4px 0; }
-    .mode-desc { font-size: 0.8rem; color: #64748B; margin: 0; }
-    .action-card { background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 16px; transition: all 0.2s; }
-    .action-card:hover { border-color: #6366F1; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
-    .created-room-box { background: #F8FAFC; border: 2px dashed #4F46E5; border-radius: 16px; }
-    .room-code-badge { font-family: 'Silkscreen', monospace; font-size: 1.8rem; font-weight: 800; color: #4F46E5; letter-spacing: 3px; background: #EEF2FF; border: 2px solid #818CF8; padding: 8px 20px; border-radius: 10px; }
-
-    /* PIXEL ARENA CONTAINER */
-    .pixel-arena-container {
-        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-        background: #468ac9;
-        border: 4px solid #0b2545;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
-        position: relative;
-    }
-    .pixel-arena-top-bar { background: #0b2545; color: #FFFFFF; }
-    .pixel-mode-pill { background: #134074; color: #F1D302; font-family: 'Silkscreen', monospace; font-size: 0.75rem; padding: 4px 10px; border-radius: 4px; border: 1px solid #F1D302; }
-    .pixel-btn-action { background: #E63946; color: #FFFFFF; border: 2px solid #FFFFFF; font-family: 'Silkscreen', monospace; font-size: 0.75rem; padding: 4px 12px; border-radius: 4px; cursor: pointer; }
-
-    /* TOP BANNER */
-    .pixel-top-banner { padding: 12px 18px; background: #0b2545; border-bottom: 3px solid #134074; }
-    .pixel-banner-inner { background: #1d3557; border: 2px solid #457b9d; border-radius: 8px; padding: 10px 16px; color: #FFFFFF; }
-    .pixel-gold-label { color: #F1D302; font-family: 'Silkscreen', monospace; font-size: 0.95rem; font-weight: 700; }
-    .pixel-question-text { font-size: 0.95rem; font-weight: 600; }
-
-    /* BATTLEFIELD */
-    .pixel-battlefield {
-        height: 250px;
-        position: relative;
-        overflow: hidden;
-        background: linear-gradient(180deg, #3a86c8 0%, #72a9db 65%, #9bc1e4 100%);
-    }
-    .pixel-hills-backdrop { position: absolute; bottom: 35px; left: 0; width: 100%; height: 75px; background: #5c9e42; border-radius: 50% 50% 0 0 / 25px 25px 0 0; }
-    .pixel-scenery-tree { position: absolute; bottom: 35px; width: 40px; height: 80px; z-index: 2; }
-    .tree-left { left: 40px; } .tree-right { right: 40px; }
-    .tree-foliage { width: 44px; height: 50px; background: #2d6a4f; border-radius: 8px; border: 2px solid #1b4332; }
-    .tree-trunk { width: 12px; height: 30px; background: #7f4f24; margin: 0 auto; border: 2px solid #582f0e; }
-    .pixel-grass-floor { position: absolute; bottom: 0; width: 100%; height: 35px; background: #386641; border-top: 4px solid #6a994e; z-index: 3; }
-
-    /* FIGHTERS */
-    .pixel-fighter-station { position: absolute; bottom: 35px; z-index: 5; text-align: center; width: 140px; }
-    .station-left { left: 80px; } .station-right { right: 80px; }
-    .fighter-header { background: rgba(11,37,69,0.85); padding: 4px 8px; border-radius: 6px; border: 1px solid #FFF; margin-bottom: 8px; }
-    .fighter-tag-title { color: #FFF; font-family: 'Silkscreen', monospace; font-size: 0.65rem; font-weight: 700; display: block; }
-    .pixel-health-bar-frame { height: 10px; background: #1F2937; border: 1px solid #FFF; border-radius: 3px; overflow: hidden; margin-top: 2px; }
-    .pixel-health-bar-fill { height: 100%; transition: width 0.3s; }
-    .fill-green { background: #10B981; } .fill-red { background: #EF4444; }
-
-    .floating-damage-popup { position: absolute; top: -30px; font-family: 'Silkscreen', monospace; font-size: 1.2rem; font-weight: 800; color: #EF4444; text-shadow: 2px 2px #000; animation: floatUp 0.8s forwards; }
-    @@keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-30px); } }
-
-    /* PIXEL CHARACTERS */
-    .pixel-guy-model { width: 50px; height: 75px; margin: 0 auto; position: relative; }
-    .guy-head { width: 28px; height: 26px; border-radius: 4px; margin: 0 auto; position: relative; border: 2px solid #000; }
-    .head-blue { background: #0284C7; } .head-red { background: #DC2626; }
-    .guy-eyes { display: flex; gap: 8px; justify-content: center; padding-top: 6px; }
-    .eye-dot { width: 4px; height: 5px; background: #FFF; border: 1px solid #000; display: inline-block; }
-    .guy-torso { width: 34px; height: 30px; margin: 0 auto; border: 2px solid #000; border-radius: 3px; }
-    .torso-blue { background: #0369A1; } .torso-red { background: #B91C1C; }
-    .guy-legs { display: flex; justify-content: space-around; width: 30px; margin: 0 auto; }
-    .leg-pixel { width: 10px; height: 16px; background: #1E293B; border: 2px solid #000; }
-    .guy-gun-arm { position: absolute; top: 30px; }
-    .arm-right { right: -16px; } .arm-left { left: -16px; }
-    .pixel-pistol { width: 18px; height: 12px; background: #334155; border: 1.5px solid #000; position: relative; }
-    .pixel-muzzle-flash { position: absolute; width: 14px; height: 14px; background: #FBBF24; border-radius: 50%; box-shadow: 0 0 10px #F59E0B; }
-    .flash-right { right: -12px; top: -1px; } .flash-left { left: -12px; top: -1px; }
-
-    /* BULLETS */
-    .pixel-flying-bullet { position: absolute; bottom: 85px; width: 18px; height: 8px; background: #FBBF24; border: 1.5px solid #000; z-index: 6; border-radius: 3px; }
-    .bullet-move-right { left: 160px; animation: flyRight 0.35s linear forwards; }
-    .bullet-move-left { right: 160px; animation: flyLeft 0.35s linear forwards; }
-    @@keyframes flyRight { 0% { left: 160px; } 100% { left: calc(100% - 170px); } }
-    @@keyframes flyLeft { 0% { right: 160px; } 100% { right: calc(100% - 170px); } }
-
-    /* BOTTOM HUD */
-    .pixel-bottom-hud { background: #0b2545; padding: 12px 18px; display: grid; grid-template-columns: 200px 1fr 140px; gap: 14px; border-top: 3px solid #134074; }
-    .pixel-chat-console { background: #1d3557; border: 2px solid #457b9d; border-radius: 6px; padding: 6px; }
-    .chat-screen-window { height: 65px; overflow-y: auto; font-size: 0.72rem; color: #E2E8F0; }
-    .chat-input-row { display: flex; justify-content: space-between; font-size: 0.65rem; color: #94A3B8; font-weight: bold; border-top: 1px solid #457b9d; padding-top: 3px; }
-    .pixel-btn-badge-1v1 { background: #134074; color: #FFF; font-family: 'Silkscreen', monospace; text-align: center; font-size: 0.7rem; padding: 2px; margin-top: 4px; border-radius: 3px; }
-
-    /* ANSWERS */
-    .pixel-answers-board { background: #1d3557; border: 2px solid #457b9d; border-radius: 8px; padding: 8px; }
-    .answers-buttons-stack { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .pixel-answer-row { background: #0b2545; color: #FFF; border: 2px solid #457b9d; border-radius: 6px; padding: 10px 14px; text-align: left; font-size: 0.88rem; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 8px; }
-    .pixel-answer-row:hover:not(:disabled) { background: #1e3a8a; border-color: #60a5fa; transform: translateY(-1px); }
-    .pixel-answer-row.correct-pick { background: #065f46 !important; border-color: #10B981 !important; }
-    .pixel-answer-row.wrong-pick { background: #7f1d1d !important; border-color: #EF4444 !important; }
-    .answer-key-letter { color: #F1D302; font-family: 'Silkscreen', monospace; font-weight: bold; }
-
-    /* TIMER */
-    .pixel-info-button { background: #457b9d; color: #FFF; border: 2px solid #FFF; font-family: 'Silkscreen', monospace; font-size: 0.7rem; width: 100%; padding: 4px; border-radius: 4px; cursor: pointer; margin-bottom: 6px; }
-    .pixel-timer-console { background: #1d3557; border: 2px solid #F1D302; border-radius: 6px; text-align: center; padding: 12px 6px; }
-    .timer-value { font-family: 'Press Start 2P', monospace; font-size: 0.9rem; color: #F1D302; }
-</style>
+</div>
 
 @section Scripts {
 <script>
@@ -558,7 +359,7 @@
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(code).then(() => {
-                alert("✅ Đã sao chép mã phòng: " + code);
+                EC.toast(`Đã sao chép mã ${code}. Gửi cho bạn của bạn nhé.`, 'ok');
             }).catch(() => fallbackCopy(code));
         } else {
             fallbackCopy(code);
@@ -574,9 +375,11 @@
         ta.select();
         try {
             document.execCommand('copy');
-            alert("✅ Đã sao chép mã phòng: " + code);
+            EC.toast(`Đã sao chép mã ${code}.`, 'ok');
         } catch (e) {
-            prompt("Mã phòng của bạn (Nhấn Ctrl+C để sao chép):", code);
+            const box = document.getElementById('displayRoomCode');
+            box.focus(); box.select();
+            EC.toast('Mã đã được chọn sẵn, nhấn Ctrl+C để sao chép.', 'warn');
         }
         document.body.removeChild(ta);
     }
@@ -584,7 +387,7 @@
     // XỬ LÝ & KIỂM TRA MÃ PHÒNG (LOẠI BỎ LINK WEBSITE & BÁO LỖI NẾU NHẬP LINK)
     function validateRoomCode(rawInput) {
         if (!rawInput) {
-            alert("⚠️ Vui lòng nhập mã phòng đấu!");
+            EC.toast('Nhập mã phòng trước khi vào, ví dụ EDU-8924.', 'warn'); document.getElementById('inputRoomCode').focus();
             return null;
         }
 
@@ -597,14 +400,14 @@
             if (match) {
                 code = match[1];
             } else {
-                alert("⚠️ Bạn vừa nhập đường link website! Vui lòng nhập đúng mã phòng thi đấu (Ví dụ: EDU-8924), không nhập link.");
+                EC.toast('Đó là một đường link. Chỉ cần nhập mã phòng, ví dụ EDU-8924.', 'warn');
                 return null;
             }
         }
 
         code = code.toUpperCase();
         if (code.length < 4 || code.length > 15) {
-            alert("⚠️ Định dạng mã phòng không hợp lệ (Ví dụ: EDU-8924)!");
+            EC.toast('Mã phòng chưa đúng dạng. Mã có dạng EDU-8924.', 'warn');
             return null;
         }
 
@@ -633,7 +436,7 @@
 
         const totalInSubject = subjectQuizzes.length;
         if (quizCountBadge) {
-            quizCountBadge.innerText = `${totalInSubject} đề import`;
+            quizCountBadge.innerText = `${totalInSubject} bộ đề`;
         }
 
         // 2. Nếu môn học CHƯA CÓ BỘ ĐỀ NÀO ĐƯỢC IMPORT -> KHÔNG ĐƯỢC PHÉP THI ĐẤU
@@ -642,17 +445,17 @@
             quizSearchGroup?.classList.add('d-none');
             selectedQuizPreviewCard?.classList.add('d-none');
             noQuizAlert.classList.remove('d-none');
-            document.getElementById('noQuizTitle').innerText = `Môn '${subName}' chưa có bộ đề thi nào được import!`;
+            document.getElementById('noQuizTitle').innerText = `Môn ${subName} chưa có bộ đề nào`;
 
             if (btnQuickMatch) {
                 btnQuickMatch.disabled = true;
                 btnQuickMatch.classList.add('disabled');
-                btnQuickMatch.innerHTML = '🚫 Không Thể Ghép (Chưa có đề)';
+                btnQuickMatch.innerHTML = 'Chưa có bộ đề';
             }
             if (btnCreateRoom) {
                 btnCreateRoom.disabled = true;
                 btnCreateRoom.classList.add('disabled');
-                btnCreateRoom.innerHTML = '🚫 Không Thể Tạo (Chưa có đề)';
+                btnCreateRoom.innerHTML = 'Chưa có bộ đề';
             }
             if (btnJoinRoom) {
                 btnJoinRoom.disabled = true;
@@ -682,17 +485,17 @@
             quizSelect.classList.add('d-none');
             selectedQuizPreviewCard?.classList.add('d-none');
             noQuizAlert.classList.remove('d-none');
-            document.getElementById('noQuizTitle').innerText = `Không tìm thấy đề thi nào khớp với "${searchQuizInput.value}"!`;
+            document.getElementById('noQuizTitle').innerText = `Không có bộ đề nào khớp "${searchQuizInput.value}"`;
 
             if (btnQuickMatch) {
                 btnQuickMatch.disabled = true;
                 btnQuickMatch.classList.add('disabled');
-                btnQuickMatch.innerHTML = '🚫 Chưa Chọn Đề';
+                btnQuickMatch.innerHTML = 'Chưa chọn bộ đề';
             }
             if (btnCreateRoom) {
                 btnCreateRoom.disabled = true;
                 btnCreateRoom.classList.add('disabled');
-                btnCreateRoom.innerHTML = '🚫 Chưa Chọn Đề';
+                btnCreateRoom.innerHTML = 'Chưa chọn bộ đề';
             }
             return;
         }
@@ -711,8 +514,8 @@
 
             const opt = document.createElement('option');
             opt.value = cId;
-            const authorTag = isMe ? '⭐ [Của tôi]' : `👤 [${authorName}]`;
-            opt.text = `${authorTag} 📝 ${title} (${diff})`;
+            const diffVi = { Easy: 'Dễ', Medium: 'Vừa', Hard: 'Khó' }[diff] || diff;
+            opt.text = `${title} · ${isMe ? 'của tôi' : authorName} · ${diffVi}`;
             quizSelect.appendChild(opt);
         });
 
@@ -720,12 +523,12 @@
         if (btnQuickMatch) {
             btnQuickMatch.disabled = false;
             btnQuickMatch.classList.remove('disabled');
-            btnQuickMatch.innerHTML = '⚔️ Tìm Trận Ngay';
+            btnQuickMatch.innerHTML = 'Vào trận tập';
         }
         if (btnCreateRoom) {
             btnCreateRoom.disabled = false;
             btnCreateRoom.classList.remove('disabled');
-            btnCreateRoom.innerHTML = '+ Tạo Mã Phòng';
+            btnCreateRoom.innerHTML = 'Tạo mã phòng';
         }
         if (btnJoinRoom) {
             btnJoinRoom.disabled = false;
@@ -753,20 +556,20 @@
         const isMe = (CURRENT_USER_ID && authorId === CURRENT_USER_ID);
         const diff = q.difficultyLevel || q.DifficultyLevel || 'Medium';
 
-        document.getElementById('previewQuizTitle').innerText = `📝 ${title}`;
+        document.getElementById('previewQuizTitle').innerText = title;
         const authorEl = document.getElementById('previewQuizAuthor');
         if (authorEl) {
             if (isMe) {
-                authorEl.className = 'badge bg-success text-white';
-                authorEl.innerText = '⭐ Bản thân import';
+                authorEl.className = 'chip chip--green';
+                authorEl.innerText = 'Bạn đăng';
             } else {
-                authorEl.className = 'badge bg-secondary text-white';
-                authorEl.innerText = `👤 Import bởi: ${authorName}`;
+                authorEl.className = 'chip';
+                authorEl.innerText = `Đăng bởi ${authorName}`;
             }
         }
         const diffEl = document.getElementById('previewQuizDiff');
         if (diffEl) {
-            diffEl.innerText = `Độ khó: ${diff}`;
+            diffEl.innerText = `Độ khó: ${({ Easy: 'Dễ', Medium: 'Vừa', Hard: 'Khó' })[diff] || diff}`;
         }
         selectedQuizPreviewCard?.classList.remove('d-none');
     }
@@ -802,12 +605,12 @@
     btnCreateRoom?.addEventListener('click', async () => {
         const selectedQuizId = quizSelect.value;
         if (!selectedQuizId) {
-            alert("Môn này chưa có bộ đề thi hoặc bạn chưa chọn đề. Không thể tạo phòng đấu!");
+            EC.toast('Chọn một bộ đề trước khi tạo phòng.', 'warn');
             return;
         }
 
         btnCreateRoom.disabled = true;
-        btnCreateRoom.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang tạo...';
+        btnCreateRoom.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Đang tạo phòng…';
 
         try {
             const subName = subSelect.options[subSelect.selectedIndex]?.dataset.name || "Môn học";
@@ -829,9 +632,9 @@
 
             if (!resp.ok) {
                 const err = await resp.json();
-                alert(err.message || "Không thể tạo phòng đấu trên máy chủ.");
+                EC.toast(err.message || 'Máy chủ chưa tạo được phòng. Thử lại sau ít giây.', 'err');
                 btnCreateRoom.disabled = false;
-                btnCreateRoom.innerHTML = '+ Tạo Mã Phòng';
+                btnCreateRoom.innerHTML = 'Tạo mã phòng';
                 return;
             }
 
@@ -860,10 +663,10 @@
             }, 1000);
 
         } catch (e) {
-            alert("Lỗi kết nối khi tạo phòng: " + e.message);
+            EC.toast('Mất kết nối khi tạo phòng. Kiểm tra mạng rồi thử lại.', 'err');
         } finally {
             btnCreateRoom.disabled = false;
-            btnCreateRoom.innerHTML = '+ Tạo Mã Phòng';
+            btnCreateRoom.innerHTML = 'Tạo mã phòng';
         }
     });
 
@@ -874,7 +677,7 @@
         if (!validCode) return;
 
         btnJoinRoom.disabled = true;
-        btnJoinRoom.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Vào...';
+        btnJoinRoom.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>';
 
         try {
             const resp = await fetch('/Home/JoinArenaRoom', {
@@ -888,9 +691,9 @@
 
             if (!resp.ok) {
                 const err = await resp.json();
-                alert(err.message || `Mã phòng '${validCode}' không tồn tại hoặc phòng đã đủ người!`);
+                EC.toast(err.message || `Không vào được phòng ${validCode}: mã sai hoặc phòng đã đủ người.`, 'err', 7000);
                 btnJoinRoom.disabled = false;
-                btnJoinRoom.innerHTML = 'Vào ➔';
+                btnJoinRoom.innerHTML = 'Vào';
                 return;
             }
 
@@ -900,10 +703,10 @@
             startPvPMatch(roomState, false);
 
         } catch (e) {
-            alert("Lỗi kết nối khi tham gia phòng: " + e.message);
+            EC.toast('Mất kết nối khi vào phòng. Kiểm tra mạng rồi thử lại.', 'err');
         } finally {
             btnJoinRoom.disabled = false;
-            btnJoinRoom.innerHTML = 'Vào ➔';
+            btnJoinRoom.innerHTML = 'Vào';
         }
     });
 
@@ -924,7 +727,14 @@
 
     // 5. RỜI TRẬN (XỬ THUA NGAY LẬP TỨC, ĐỐI THỦ THẮNG)
     document.getElementById('btnSurrender')?.addEventListener('click', async () => {
-        if (confirm("⚠️ Bạn có chắc muốn rời trận? Nếu bạn rời trận bây giờ, đối thủ sẽ được xử THẮNG NGAY LẬP TỨC (-20 Elo)!")) {
+        const leave = await EC.confirm({
+            title: 'Rời trận bây giờ?',
+            body: isRealMatch ? 'Bạn sẽ bị xử thua và mất 20 Elo, đối thủ thắng ngay.' : 'Trận tập sẽ kết thúc, không ảnh hưởng Elo.',
+            okText: 'Rời trận',
+            cancelText: 'Đấu tiếp',
+            danger: true
+        });
+        if (leave) {
             if (isRealMatch && currentRoom) {
                 try {
                     await fetch(`/Home/LeaveArenaRoom?code=${encodeURIComponent(currentRoom.roomCode)}&playerId=${encodeURIComponent(MY_PLAYER_ID)}`, { method: 'POST' });
@@ -941,7 +751,7 @@
 
     // 6. GHÉP NHANH CÙNG BOT AI
     btnQuickMatch?.addEventListener('click', () => {
-        startBotMatch("Trần Bảo Nam (Bot AI)");
+        startBotMatch("Bot luyện tập");
     });
 
     // =========================================================================
@@ -958,17 +768,17 @@
         try {
             const resp = await fetch(`/Home/GetQuizQuestions/${room.contentId}`);
             if (!resp.ok) {
-                alert("Không thể tải câu hỏi từ bộ đề này. Trận đấu bị hủy!");
+                EC.toast('Không tải được câu hỏi của bộ đề này, trận bị huỷ.', 'err');
                 return;
             }
             rawQuestions = await resp.json();
         } catch (e) {
-            alert("Lỗi tải câu hỏi: " + e.message);
+            EC.toast('Mất kết nối khi tải câu hỏi. Thử lại sau ít giây.', 'err');
             return;
         }
 
         if (!rawQuestions || rawQuestions.length === 0) {
-            alert("Bộ đề này chưa có câu hỏi nào trong cơ sở dữ liệu! Vui lòng import câu hỏi trước khi thi đấu.");
+            EC.toast('Bộ đề này chưa có câu hỏi nào. Hãy chọn bộ đề khác.', 'warn');
             return;
         }
 
@@ -1001,9 +811,8 @@
         result.classList.add('d-none');
         battle.classList.remove('d-none');
 
-        document.getElementById('battleSubjectInfo').innerText = `| Môn: ${room.subjectName || "Đại Cương"} (${room.subjectCode || "GEN"})`;
-        document.getElementById('p1NameTag').innerText = `BẠN • 200/200 HP`;
-        document.getElementById('p2NameTag').innerText = `${opponentName.toUpperCase()} • 200/200 HP`;
+        document.getElementById('battleSubjectInfo').innerText = `${room.subjectCode || ''} · ${room.subjectName || 'Đại cương'}`;
+        
 
         // Khởi tạo trạng thái
         p1Hp = 200;
@@ -1089,7 +898,7 @@
 
         const selectedQuizId = quizSelect.value;
         if (!selectedQuizId) {
-            alert("Vui lòng chọn bộ đề trắc nghiệm trước khi thi đấu!");
+            EC.toast('Chọn một bộ đề trước khi vào trận.', 'warn');
             return;
         }
 
@@ -1097,17 +906,17 @@
         try {
             const resp = await fetch(`/Home/GetQuizQuestions/${selectedQuizId}`);
             if (!resp.ok) {
-                alert("Không thể tải câu hỏi từ bộ đề này!");
+                EC.toast('Không tải được câu hỏi của bộ đề này.', 'err');
                 return;
             }
             rawQuestions = await resp.json();
         } catch (e) {
-            alert("Lỗi tải câu hỏi: " + e.message);
+            EC.toast('Mất kết nối khi tải câu hỏi. Thử lại sau ít giây.', 'err');
             return;
         }
 
         if (!rawQuestions || rawQuestions.length === 0) {
-            alert("Bộ đề này chưa có câu hỏi nào trong cơ sở dữ liệu!");
+            EC.toast('Bộ đề này chưa có câu hỏi nào. Hãy chọn bộ đề khác.', 'warn');
             return;
         }
 
@@ -1133,9 +942,8 @@
         battle.classList.remove('d-none');
 
         const subName = subSelect.options[subSelect.selectedIndex]?.dataset.name || "Kiến thức Đại học";
-        document.getElementById('battleSubjectInfo').innerText = `| Môn: ${subName}`;
-        document.getElementById('p1NameTag').innerText = `BẠN • 200/200 HP`;
-        document.getElementById('p2NameTag').innerText = `${opponentName.toUpperCase()} • 200/200 HP`;
+        document.getElementById('battleSubjectInfo').innerText = `${subName} · trận tập`;
+        
 
         p1Hp = 200;
         p2Hp = 200;
@@ -1166,7 +974,7 @@
         updateTimerDisplay();
 
         const q = currentQuestions[qIndex];
-        document.getElementById('questionNumberLabel').innerText = `CÂU ${qIndex + 1}/${currentQuestions.length}: `;
+        document.getElementById('questionNumberLabel').innerText = `${qIndex + 1}/${currentQuestions.length}`;
         document.getElementById('questionText').innerText = q.text;
 
         answersContainer.innerHTML = '';
@@ -1175,6 +983,7 @@
             const letter = String.fromCharCode(65 + idx);
             const btn = document.createElement('button');
             btn.className = 'pixel-answer-row';
+            btn.type = 'button';
             btn.innerHTML = `<span class="answer-key-letter">${letter}.</span> <span>${ans.text}</span>`;
             btn.onclick = () => chooseAnswer(ans, btn);
             answersContainer.appendChild(btn);
@@ -1195,9 +1004,7 @@
     function updateTimerDisplay() {
         const valStr = timerVal < 10 ? `0${timerVal}` : `${timerVal}`;
         document.getElementById('battleTimerText').innerText = `00:${valStr}`;
-        const box = document.getElementById('timerBox');
-        if (timerVal <= 5) box.style.borderColor = "#EF4444";
-        else box.style.borderColor = "#F1D302";
+        document.getElementById('timerBox').classList.toggle('is-low', timerVal <= 5);
     }
 
     function chooseAnswer(selectedAns, clickedBtn) {
@@ -1243,7 +1050,7 @@
             }
         } else {
             // BẠN TRẢ LỜI SAI HOẶC HẾT GIỜ -> TUYỆT ĐỐI KHÔNG AI BẮN! CÔNG BẰNG TUYỆT ĐỐI!
-            document.getElementById('battleLogText').innerHTML = '<span style="color:#94A3B8">⚠️ Bạn trả lời sai/hết giờ: Không ai bắn lượt này.</span>';
+            document.getElementById('battleLogText').innerHTML = '<span class="log-muted">Sai hoặc hết giờ: lượt này không ai bị bắn.</span>';
 
             // Gửi kết quả sai lên server
             if (isRealMatch && currentRoom) {
@@ -1288,8 +1095,8 @@
             answersContainer?.classList.add('d-none');
             document.getElementById('waitingOpponentName').innerText = opponentName;
             waitingOpponentCard?.classList.remove('d-none');
-            document.getElementById('battleTimerText').innerText = "CHỜ...";
-            document.getElementById('battleLogText').innerHTML = '<span style="color:#FBBF24">⏳ Bạn đã hoàn thành 20 câu! Đang chờ đối thủ làm xong để so máu tổng kết...</span>';
+            document.getElementById('battleTimerText').innerText = "--:--";
+            document.getElementById('battleLogText').innerHTML = '<span class="log-wait">Bạn đã làm xong. Đang chờ đối thủ để so máu.</span>';
         } else {
             // Đấu với Bot: So sánh lượng máu sau khi xong 20 câu
             endGame(p1Hp > p2Hp, false, false, false, p1Hp === p2Hp);
@@ -1299,7 +1106,7 @@
     // HIỆU ỨNG BẮN ĐẠN & TRỪ MÁU
     function triggerPlayer1Shoot() {
         document.getElementById('flash1').classList.remove('d-none');
-        document.getElementById('battleLogText').innerHTML = '<span style="color:#10B981">🎯 Bạn trả lời ĐÚNG: BẮN TRÚNG ĐỐI THỦ (-20 HP)!</span>';
+        document.getElementById('battleLogText').innerHTML = '<span class="log-ok">Đúng! Bạn bắn trúng đối thủ, -20 HP.</span>';
         playWebAudio('shoot');
 
         setTimeout(() => document.getElementById('flash1').classList.add('d-none'), 200);
@@ -1318,7 +1125,7 @@
 
     function triggerOpponentShot() {
         document.getElementById('flash2').classList.remove('d-none');
-        document.getElementById('battleLogText').innerHTML = '<span style="color:#EF4444">💥 Đối thủ trả lời ĐÚNG: BẮN TRÚNG BẠN (-20 HP)!</span>';
+        document.getElementById('battleLogText').innerHTML = '<span class="log-bad">Đối thủ trả lời đúng và bắn trúng bạn, -20 HP.</span>';
         playWebAudio('shoot');
 
         setTimeout(() => document.getElementById('flash2').classList.add('d-none'), 200);
@@ -1349,10 +1156,10 @@
     }
 
     function updateHealthUI() {
-        document.getElementById('p1HealthFill').style.width = `${(p1Hp / 200) * 100}%`;
-        document.getElementById('p2HealthFill').style.width = `${(p2Hp / 200) * 100}%`;
-        document.getElementById('p1NameTag').innerText = `BẠN • ${p1Hp}/200 HP`;
-        document.getElementById('p2NameTag').innerText = `${opponentName.toUpperCase()} • ${p2Hp}/200 HP`;
+        document.getElementById('p1HealthFill').style.transform = `scaleX(${p1Hp / 200})`;
+        document.getElementById('p2HealthFill').style.transform = `scaleX(${p2Hp / 200})`;
+        document.getElementById('p1NameTag').innerText = `BAN · ${p1Hp} HP`;
+        document.getElementById('p2NameTag').innerText = `${asciiName(opponentName)} · ${p2Hp} HP`;
     }
 
     // =========================================================================
@@ -1366,67 +1173,69 @@
         battle.classList.add('d-none');
         result.classList.remove('d-none');
 
-        const title = document.getElementById('resultTitle');
-        const icon = document.getElementById('resultIcon');
-        const desc = document.getElementById('resultDesc');
-        const elo = document.getElementById('resultEloText');
-
+        let icon = '#i-trophy', title, desc, elo, tone;
         if (isSurrendered) {
-            icon.innerText = "🏳️";
-            title.innerText = "BẠN ĐÃ RỜI TRẬN (XỬ THUA)!";
-            title.className = "fw-bold mt-2 text-danger";
-            desc.innerText = `Bạn đã thoát khỏi trận đấu giữa chừng. Đối thủ (${opponentName}) được xử THẮNG NGAY LẬP TỨC!`;
-            elo.innerText = "-20 Elo";
-            elo.className = "fs-4 fw-bold text-danger";
+            icon = '#i-flag'; tone = 'lose'; elo = -20;
+            title = 'Bạn đã rời trận';
+            desc = `Rời trận giữa chừng nên ${opponentName} được xử thắng.`;
         } else if (isOpponentLeft) {
-            icon.innerText = "🏆";
-            title.innerText = "CHIẾN THẮNG! ĐỐI THỦ ĐÃ RỜI TRẬN!";
-            title.className = "fw-bold mt-2 text-success";
-            desc.innerText = `Đối thủ (${opponentName}) đã thoát khỏi trận đấu giữa chừng. Bạn được xử CHIẾN THẮNG TUYỆT ĐỐI (+Elo) mà không cần chờ!`;
-            elo.innerText = "+25 Elo";
-            elo.className = "fs-4 fw-bold text-success";
+            tone = 'win'; elo = 25;
+            title = 'Thắng! Đối thủ đã rời trận';
+            desc = `${opponentName} thoát giữa chừng nên bạn được xử thắng.`;
+        } else if (isKo && isWon) {
+            icon = '#i-bolt'; tone = 'win'; elo = 30;
+            title = 'Thắng knock-out!';
+            desc = 'Đối thủ hết máu trước khi hết câu hỏi.';
         } else if (isKo) {
-            if (isWon) {
-                icon.innerText = "⚡";
-                title.innerText = "CHIẾN THẮNG KNOCKOUT (K.O.)!";
-                title.className = "fw-bold mt-2 text-success";
-                desc.innerText = `Đối thủ đã hết sạch máu trước khi hết 20 câu! Bạn thắng knock-out trực tiếp!`;
-                elo.innerText = "+30 Elo";
-                elo.className = "fs-4 fw-bold text-success";
-            } else {
-                icon.innerText = "💥";
-                title.innerText = "BẠN ĐÃ BỊ HẠ KNOCKOUT (K.O.)!";
-                title.className = "fw-bold mt-2 text-danger";
-                desc.innerText = "Bạn đã hết máu trước đối thủ! Hãy phục thù ở trận tiếp theo nhé!";
-                elo.innerText = "-20 Elo";
-                elo.className = "fs-4 fw-bold text-danger";
-            }
+            icon = '#i-heart'; tone = 'lose'; elo = -20;
+            title = 'Bạn bị knock-out';
+            desc = 'Bạn hết máu trước. Ôn lại bộ đề rồi phục thù nhé.';
         } else if (isDraw) {
-            icon.innerText = "🤝";
-            title.innerText = "TRẬN ĐẤU BẤT PHÂN THẮNG BẠI (HÒA)!";
-            title.className = "fw-bold mt-2 text-warning";
-            desc.innerText = `Cả hai đấu thủ đều có lượng máu và số câu đúng bằng nhau sau 20 câu hỏi!`;
-            elo.innerText = "+5 Elo";
-            elo.className = "fs-4 fw-bold text-warning";
+            icon = '#i-shield'; tone = 'draw'; elo = 5;
+            title = 'Hoà!';
+            desc = 'Hai bên còn lượng máu bằng nhau khi hết câu hỏi.';
         } else if (isWon) {
-            icon.innerText = "🏆";
-            title.innerText = "CHIẾN THẮNG TUYỆT ĐỐI (SO MÁU)!";
-            title.className = "fw-bold mt-2 text-success";
-            desc.innerText = `Đã hoàn thành 20 câu hỏi! Lượng máu còn lại của bạn (${p1Hp} HP) cao hơn đối thủ (${p2Hp} HP) nên bạn giành chiến thắng!`;
-            elo.innerText = "+25 Elo";
-            elo.className = "fs-4 fw-bold text-success";
+            tone = 'win'; elo = 25;
+            title = 'Chiến thắng!';
+            desc = `Hết câu hỏi, bạn còn ${p1Hp} HP, đối thủ còn ${p2Hp} HP.`;
         } else {
-            icon.innerText = "🛡️";
-            title.innerText = "KẾT THÚC TRẬN - BẠN ĐÃ THUA!";
-            title.className = "fw-bold mt-2 text-danger";
-            desc.innerText = `Đã hoàn thành 20 câu hỏi! Lượng máu còn lại của bạn (${p1Hp} HP) thấp hơn đối thủ (${p2Hp} HP).`;
-            elo.innerText = "-15 Elo";
-            elo.className = "fs-4 fw-bold text-danger";
+            icon = '#i-shield'; tone = 'lose'; elo = -15;
+            title = 'Thua sát nút';
+            desc = `Hết câu hỏi, bạn còn ${p1Hp} HP, đối thủ còn ${p2Hp} HP.`;
         }
 
-        document.getElementById('resultHpText').innerText = `${p1Hp} / 200 HP`;
-        document.getElementById('resultScoreText').innerText = `${p1Score} / ${currentQuestions.length}`;
+        result.classList.remove('is-win', 'is-lose', 'is-draw');
+        result.classList.add('is-' + tone);
+        document.getElementById('resultIcon').setAttribute('href', icon);
+        document.getElementById('resultTitle').innerText = title;
+        document.getElementById('resultDesc').innerText = desc;
+
+        const eloEl = document.getElementById('resultEloText');
+        if (!isRealMatch) {
+            eloEl.innerText = '—';
+            eloEl.className = 'elo-flat';
+            eloEl.title = 'Trận tập không tính Elo';
+        } else {
+            eloEl.innerText = (elo > 0 ? '+' : '') + elo;
+            eloEl.className = elo > 0 ? 'elo-up' : (elo < 0 ? 'elo-down' : 'elo-flat');
+        }
+
+        document.getElementById('resultHpText').innerText = `${p1Hp}/200`;
+        document.getElementById('resultScoreText').innerText = `${p1Score}/${currentQuestions.length}`;
+        result.focus({ preventScroll: true });
+        result.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+
+    // Font pixel không có dấu tiếng Việt: bỏ dấu cho nhãn trên đầu nhân vật.
+    function asciiName(name) {
+        return (name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toUpperCase().slice(0, 14);
+    }
+
+    document.getElementById('btnRules')?.addEventListener('click', function () {
+        const panel = document.getElementById('pixelRules');
+        const open = panel.classList.toggle('d-none') === false;
+        this.setAttribute('aria-expanded', String(open));
+    });
 
     // TỰ ĐỘNG THÔNG BÁO RỜI TRẬN NẾU ĐÓNG TRÌNH DUYỆT
     window.addEventListener('beforeunload', () => {

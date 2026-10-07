@@ -1,86 +1,68 @@
 @model List<SubjectViewModel>
 @{
-    ViewData["Title"] = "Tất Cả Các Môn Học Đại Học — EduClash";
+    ViewData["Title"] = "Môn học · EduClash";
     string searchKeyword = ViewBag.SearchKeyword as string ?? "";
 }
 
-<!-- Breadcrumbs Strip -->
-<div class="edu-breadcrumbs-strip" style="background-color: #0F1D33; padding: 12px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-    <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 10px; font-size: 0.95rem;">
-        <a href="/" style="color: #FFFFFF; font-weight: 500; text-decoration: none;">Trang chủ</a>
-        <span style="color: #94A3B8;">&gt;</span>
-        <span style="color: #38BDF8; font-weight: 600;">Tất cả môn học</span>
-    </div>
-</div>
-
-<div class="container py-4" style="max-width: 1200px;">
-    <!-- Header Bar -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <div>
-            <div class="d-flex align-items-center gap-2 mb-1">
-                <span style="display: inline-block; width: 4px; height: 24px; background: #10B981; border-radius: 2px;"></span>
-                <h1 class="h3 fw-bold m-0 text-dark">Tất Cả Các Môn Học Đại Học</h1>
-            </div>
-            <p class="text-muted small m-0">Chọn một môn học để xem toàn bộ Đề cương lý thuyết hoặc các bài thi Trắc nghiệm trực tuyến.</p>
-        </div>
-
-        <!-- Search Form -->
-        <form method="get" action="/Home/Subjects" class="d-flex gap-2">
-            <input type="text" name="search" class="form-control" placeholder="Tìm tên môn, mã môn..." value="@searchKeyword" />
-            <button class="btn btn-success" type="submit">Tìm</button>
-            @if (!string.IsNullOrWhiteSpace(searchKeyword))
-            {
-                <a href="/Home/Subjects" class="btn btn-outline-secondary">Xóa</a>
-            }
-        </form>
-    </div>
-
-    @if (Model == null || Model.Count == 0)
-    {
-        <div class="card p-5 text-center shadow-sm border-0 my-4" style="border-radius: 12px; background: #FFFFFF;">
-            <div style="font-size: 3rem;">🔍</div>
-            <h4 class="fw-bold mt-2">Không tìm thấy môn học nào</h4>
-            <p class="text-muted">Không có môn học phù hợp với từ khóa "<strong>@searchKeyword</strong>". Vui lòng thử từ khóa khác.</p>
+<div class="wrap">
+    <header class="page-head">
+        <ol class="crumbs" aria-label="Vị trí">
+            <li><a href="/">Trang chủ</a></li>
+            <li aria-current="page">Môn học</li>
+        </ol>
+        <div class="page-head__row">
             <div>
-                <a href="/Home/Subjects" class="btn btn-outline-secondary btn-sm mt-2">Xem lại tất cả</a>
+                <h1>Tất cả môn học</h1>
+                <p class="page-head__lede">Mỗi môn có hai kệ: đề cương để đọc và bộ trắc nghiệm để luyện hoặc mang vào đấu trường.</p>
             </div>
+            <form method="get" action="/Home/Subjects" class="search" role="search">
+                <svg class="icon" aria-hidden="true"><use href="#i-search" /></svg>
+                <label for="subjectSearch" class="visually-hidden">Tìm môn học</label>
+                <input id="subjectSearch" type="search" name="search" placeholder="Tên môn hoặc mã môn" value="@searchKeyword" />
+                <button type="submit">Tìm</button>
+            </form>
         </div>
-    }
-    else
-    {
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
-            @foreach (var sub in Model)
-            {
-                <div class="col">
-                    <div class="card h-100 shadow-sm border-0" style="border-radius: 12px; transition: transform 0.2s;">
-                        <!-- Book Cover Mockup -->
-                        <div class="p-3 text-center d-flex flex-column justify-content-center align-items-center" 
-                             style="background: @sub.ThemeColor; color: @sub.TextColor; border-top-left-radius: 12px; border-top-right-radius: 12px; min-height: 110px;">
-                            <span class="badge bg-light text-dark fw-bold mb-1" style="font-size: 0.7rem;">@sub.Code</span>
-                            <h5 class="fw-bold m-0 text-truncate px-2" style="max-width: 100%; font-size: 0.95rem;">@sub.Name</h5>
-                            <small class="opacity-75" style="font-size: 0.75rem;">Giáo trình &amp; Ôn thi</small>
-                        </div>
+    </header>
 
-                        <!-- Card Body -->
-                        <div class="card-body p-3 d-flex flex-column justify-content-between">
-                            <div>
-                                <p class="text-muted small mb-3" style="min-height: 40px; font-size: 0.8rem;">
-                                    @(string.IsNullOrEmpty(sub.Description) ? "Tài liệu học tập & câu hỏi trắc nghiệm ôn thi." : sub.Description)
-                                </p>
-                            </div>
+    <section class="section" aria-label="Danh sách môn học">
+        @if (!string.IsNullOrWhiteSpace(searchKeyword))
+        {
+            <p class="filter-note">Kết quả cho <span class="chip">“@searchKeyword”</span> <a href="/Home/Subjects" class="link-arrow">Xem lại tất cả</a></p>
+        }
 
-                            <div class="d-flex flex-column gap-2 pt-2 border-top">
-                                <a href="/?subjectId=@sub.SubjectId" class="btn btn-sm btn-outline-success fw-bold text-start">
-                                    📚 Xem Lý thuyết
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="empty">
+                <svg class="icon empty__icon" aria-hidden="true"><use href="#i-search" /></svg>
+                <h3>Không tìm thấy môn nào</h3>
+                <p>Không có môn học khớp với “@searchKeyword”. Thử gõ mã môn, ví dụ CS101.</p>
+                <a href="/Home/Subjects" class="btn-arcade">Xem tất cả môn</a>
+            </div>
+        }
+        else
+        {
+            <div class="subject-grid">
+                @foreach (var sub in Model)
+                {
+                    <article class="subject-card" style="--c:@sub.ThemeColor; --tc:@sub.TextColor">
+                        <div class="subject-card__cover">
+                            <span class="num">@sub.Code</span>
+                            <h2>@sub.Name</h2>
+                        </div>
+                        <div class="subject-card__body">
+                            <p>@(string.IsNullOrEmpty(sub.Description) ? "Đề cương lý thuyết và câu hỏi trắc nghiệm ôn thi." : sub.Description)</p>
+                            <div class="subject-card__actions">
+                                <a href="/?subjectId=@sub.SubjectId" class="btn-arcade btn-arcade--sm" aria-label="Đề cương môn @sub.Name">
+                                    <svg class="icon" aria-hidden="true"><use href="#i-book" /></svg>Đề cương
                                 </a>
-                                <a href="/Home/Quizzed?subjectId=@sub.SubjectId" class="btn btn-sm btn-outline-primary fw-bold text-start">
-                                    🎯 Làm Trắc nghiệm
+                                <a href="/Home/Quizzed?subjectId=@sub.SubjectId" class="btn-arcade btn-arcade--sm" aria-label="Trắc nghiệm môn @sub.Name">
+                                    <svg class="icon" aria-hidden="true"><use href="#i-quiz" /></svg>Trắc nghiệm
                                 </a>
                             </div>
                         </div>
-                    </div>
-                </div>
-            }
-        </div>
-    }
+                    </article>
+                }
+            </div>
+        }
+    </section>
 </div>

@@ -20,10 +20,13 @@ public class HomeController : Controller
     {
         var subjectsTask = _apiClient.GetSubjectsAsync();
         var contentsTask = _apiClient.GetPublicContentsAsync(subjectId: subjectId, contentType: "StudyOutline", search: search);
+        var boardTask = _apiClient.GetLeaderboardAsync(true);
 
-        await Task.WhenAll(subjectsTask, contentsTask);
+        await Task.WhenAll(subjectsTask, contentsTask, boardTask);
         var subjects = await subjectsTask;
         var contents = await contentsTask;
+        ViewBag.TopPlayers = (await boardTask).Take(3).ToList();
+        ViewBag.CurrentUser = _authService.CurrentUser;
 
         // Cập nhật số đề cương
         foreach (var s in subjects)
@@ -114,6 +117,27 @@ public class HomeController : Controller
         }
 
         return NotFound();
+    }
+
+    // Chấm bài trắc nghiệm ở server để đáp án đúng không nằm sẵn trong HTML.
+    // Body: { "questionId": "answerId", ... }
+    [HttpPost]
+    public async Task<IActionResult> GradeQuiz(Guid id, [FromBody] Dictionary<Guid, Guid>? picks)
+    {
+        var quiz = await _apiClient.GetQuizDetailAsync(id);
+        if (quiz == null) return NotFound(new { Message = "Không tìm thấy bộ đề." });
+
+        picks ??= new();
+        var results = quiz.Questions.Select(q => new
+        {
+            questionId = q.QuestionId,
+            correctAnswerIds = q.Answers.Where(a => a.IsCorrect).Select(a => a.AnswerId).ToList(),
+            picked = picks.TryGetValue(q.QuestionId, out var p) ? p : (Guid?)null,
+            explanation = q.Explanation
+        }).ToList();
+
+        var correct = results.Count(r => r.picked.HasValue && r.correctAnswerIds.Contains(r.picked.Value));
+        return Json(new { total = results.Count, correct, results });
     }
 
     public async Task<IActionResult> Leaderboard(bool byRating = true)

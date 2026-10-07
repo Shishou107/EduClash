@@ -1,93 +1,80 @@
 @model UserProfileViewModel
 @{
-    ViewData["Title"] = "Hồ Sơ Cá Nhân — EduClash";
+    ViewData["Title"] = "Hồ sơ · EduClash";
 }
 
-<div class="edu-breadcrumbs-strip" style="background-color: #0F1D33; padding: 12px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-    <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 10px; font-size: 0.95rem;">
-        <a href="/" style="color: #FFFFFF; font-weight: 500; text-decoration: none;">Trang chủ</a>
-        <span style="color: #94A3B8;">&gt;</span>
-        <span style="color: #38BDF8; font-weight: 600;">Hồ sơ cá nhân</span>
-    </div>
-</div>
+<div class="wrap wrap--narrow">
+    <header class="page-head">
+        <ol class="crumbs" aria-label="Vị trí">
+            <li><a href="/">Trang chủ</a></li>
+            <li aria-current="page">Hồ sơ của tôi</li>
+        </ol>
+    </header>
 
-<div class="container py-5" style="max-width: 860px;">
     @if (Model == null)
     {
-        <div class="alert alert-warning">Bạn chưa đăng nhập. Vui lòng <a href="/Auth/Login">đăng nhập</a> để xem hồ sơ.</div>
+        <div class="empty">
+            <svg class="icon empty__icon" aria-hidden="true"><use href="#i-user" /></svg>
+            <h3>Bạn chưa đăng nhập</h3>
+            <p>Đăng nhập để xem chỉ số, ví xu và các đề bạn đã đăng.</p>
+            <a href="/Auth/Login" class="btn-arcade btn-arcade--green">Đăng nhập</a>
+        </div>
     }
     else
     {
-        <div class="card shadow-sm border-0 overflow-hidden mb-4" style="border-radius: 16px; background: #FFFFFF;">
-            <!-- Header banner -->
-            <div class="p-4 p-md-5" style="background: linear-gradient(135deg, #0F1D33 0%, #1E293B 100%); color: #FFFFFF;">
-                <div class="d-flex align-items-center gap-4 flex-wrap">
-                    <div class="rounded-circle overflow-hidden shadow" style="width: 88px; height: 88px; background: #334155; border: 3px solid #10B981;">
-                        <img src="@(string.IsNullOrEmpty(Model.AvatarUrl) ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80" : Model.AvatarUrl)" 
-                             alt="@Model.DisplayName" style="width: 100%; height: 100%; object-fit: cover;" />
-                    </div>
-                    <div>
-                        <h2 class="h3 fw-bold m-0 text-white">@Model.DisplayName</h2>
-                        <p class="small m-0 text-white-50">@Model.Email</p>
-                        <div class="d-flex gap-2 mt-2">
-                            <span class="badge bg-success">@Model.Role</span>
-                            <span class="badge bg-info text-dark">🛡️ @Model.RankTier</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stats row -->
-            <div class="p-4 border-bottom bg-light">
-                <div class="row text-center g-3">
-                    <div class="col-4">
-                        <div class="card p-3 border-0 shadow-sm" style="border-radius: 10px; background: #FFFFFF;">
-                            <div class="text-muted small">Ví Xu AI</div>
-                            <div class="fs-4 fw-bold text-warning">🪙 @Model.Coins</div>
-                        </div>
-                    </div>
-                    <div class="col-4">
-                        <div class="card p-3 border-0 shadow-sm" style="border-radius: 10px; background: #FFFFFF;">
-                            <div class="text-muted small">Điểm Đấu Trí (Elo)</div>
-                            <div class="fs-4 fw-bold text-success">⚔️ @Model.Rating</div>
-                        </div>
-                    </div>
-                    <div class="col-4">
-                        <div class="card p-3 border-0 shadow-sm" style="border-radius: 10px; background: #FFFFFF;">
-                            <div class="text-muted small">Cấp Bậc</div>
-                            <div class="fs-4 fw-bold text-primary">🛡️ @Model.RankTier</div>
-                        </div>
+        <section class="game-panel" aria-labelledby="playerName">
+            <div class="player-hero">
+                <span class="avatar">
+                    @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+                    {
+                        <img src="@Model.AvatarUrl" alt="" />
+                    }
+                    else
+                    {
+                        @UiHelpers.Initial(Model.DisplayName)
+                    }
+                </span>
+                <div>
+                    <h1 id="playerName">@Model.DisplayName</h1>
+                    <p class="player-hero__meta">@Model.Email · tham gia @Model.RegisteredAt.ToString("dd/MM/yyyy")</p>
+                    <div class="player-hero__chips">
+                        <span class="chip tier @UiHelpers.TierClass(Model.RankTier)"><svg class="icon" aria-hidden="true"><use href="#i-shield" /></svg>Hạng @Model.RankTier</span>
+                        <span class="chip chip--code">LV @Model.Level</span>
+                        @if (Model.CurrentStreak > 0)
+                        {
+                            <span class="chip chip--gold"><svg class="icon" aria-hidden="true"><use href="#i-flame" /></svg>Chuỗi thắng @Model.CurrentStreak</span>
+                        }
                     </div>
                 </div>
             </div>
+            <dl class="stat-grid m-0">
+                <div><dt>Ví xu</dt><dd class="is-coin">@Model.Coins</dd></div>
+                <div><dt>Elo đấu trường</dt><dd class="is-elo">@Model.Rating</dd></div>
+                <div><dt>Thắng / Thua</dt><dd>@Model.Wins/@Model.Losses</dd></div>
+                <div><dt>Chuỗi thắng tốt nhất</dt><dd>@Model.BestStreak</dd></div>
+            </dl>
+        </section>
 
-            <!-- Management Section: Đề Cương & Tài Liệu Của Tôi -->
-            <div class="p-4 border-bottom">
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-                    <div>
-                        <h4 class="h5 fw-bold m-0 text-dark">📑 Kho Đề Cương &amp; Bài Thi Của Bạn</h4>
-                        <p class="text-muted small m-0">Quản lý, xem lại và xóa các đề cương hoặc bộ đề trắc nghiệm bạn đã đăng tải.</p>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <a href="/Outline/MyOutlines" class="btn btn-primary fw-bold px-3 py-2">
-                            📑 Quản lý đề cương của tôi &rarr;
-                        </a>
-                        <a href="/Outline/Import" class="btn btn-outline-success fw-bold px-3 py-2">
-                            + Tải lên đề mới
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Actions footer -->
-            <div class="p-4 d-flex justify-content-between align-items-center flex-wrap gap-2 bg-light">
-                <a href="/" class="btn btn-outline-secondary">
-                    &larr; Về trang chủ
+        <section class="section" aria-labelledby="actionsTitle">
+            <div class="section-head"><h2 id="actionsTitle">Việc bạn có thể làm</h2></div>
+            <div class="action-list">
+                <a class="action-tile" href="/Outline/MyOutlines">
+                    <span class="perk-icon"><svg class="icon" aria-hidden="true"><use href="#i-file" /></svg></span>
+                    <span><strong>Đề tôi đã đăng</strong><span>Xem, kiểm tra hoặc xoá đề cương và bộ đề.</span></span>
                 </a>
-                <a href="/Auth/Logout" class="btn btn-outline-danger">
-                    🚪 Đăng xuất
+                <a class="action-tile" href="/Outline/Import">
+                    <span class="perk-icon"><svg class="icon" aria-hidden="true"><use href="#i-upload" /></svg></span>
+                    <span><strong>Tải đề mới lên</strong><span>File Word (.docx) hoặc PDF.</span></span>
+                </a>
+                <a class="action-tile" href="/Home/Arena">
+                    <span class="perk-icon"><svg class="icon" aria-hidden="true"><use href="#i-swords" /></svg></span>
+                    <span><strong>Vào đấu trường</strong><span>Tạo phòng và mời bạn đấu 1 vs 1.</span></span>
+                </a>
+                <a class="action-tile action-tile--danger" href="/Auth/Logout">
+                    <span class="perk-icon"><svg class="icon" aria-hidden="true"><use href="#i-logout" /></svg></span>
+                    <span><strong>Đăng xuất</strong><span>Thoát khỏi tài khoản trên máy này.</span></span>
                 </a>
             </div>
-        </div>
+        </section>
     }
 </div>

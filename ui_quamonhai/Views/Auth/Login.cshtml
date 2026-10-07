@@ -1,59 +1,57 @@
 @model LoginRequest
 @{
-    ViewData["Title"] = "Đăng Nhập — EduClash";
+    ViewData["Title"] = "Đăng nhập · EduClash";
     string? returnUrl = ViewBag.ReturnUrl as string;
     string? errorMessage = ViewBag.ErrorMessage as string;
 }
 
-<div class="container py-5" style="max-width: 480px;">
-    <div class="card shadow border-0 p-4 p-md-5" style="border-radius: 16px; background: #FFFFFF;">
-        <div class="text-center mb-4">
-            <div class="d-inline-flex p-3 rounded-circle mb-3" style="background: rgba(16, 185, 129, 0.1);">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" fill="#059669"/>
-                </svg>
-            </div>
-            <h2 class="h4 fw-bold text-dark m-0">Đăng Nhập EduClash</h2>
-            <p class="text-muted small mt-1">Học tập &amp; Đấu trí đối kháng tri thức sinh viên</p>
-        </div>
+<div class="wrap">
+    <div class="auth panel">
+        <aside class="auth__side">
+            <h2>Chào mừng trở lại đấu trường</h2>
+            <ul class="perk-list">
+                <li><span class="perk-icon"><svg class="icon" aria-hidden="true"><use href="#i-swords" /></svg></span><div><strong>Đấu 1 vs 1</strong>Tạo phòng, gửi mã cho bạn, trả lời đúng để bắn trúng.</div></li>
+                <li><span class="perk-icon"><svg class="icon" aria-hidden="true"><use href="#i-bolt" /></svg></span><div><strong>Leo hạng Elo</strong>Mỗi trận thắng đẩy bạn lên bảng xếp hạng.</div></li>
+                <li><span class="perk-icon"><svg class="icon" aria-hidden="true"><use href="#i-sparkles" /></svg></span><div><strong>Xu để soạn đề bằng AI</strong>Dùng xu để AI soạn câu hỏi từ đề cương.</div></li>
+            </ul>
+        </aside>
 
-        @if (!string.IsNullOrEmpty(errorMessage))
-        {
-            <div class="alert alert-danger py-2 small" role="alert">
-                @errorMessage
-            </div>
-        }
-
-        <form method="post" action="/Auth/Login">
+        <form method="post" action="/Auth/Login" class="auth__form">
             @Html.AntiForgeryToken()
             <input type="hidden" name="returnUrl" value="@returnUrl" />
+            <h1>Đăng nhập</h1>
+            <p>Dùng email bạn đã đăng ký.</p>
 
-            <div class="mb-3">
-                <label class="form-label fw-bold small text-muted">Email hoặc Tên tài khoản</label>
-                <input type="text" name="Email" class="form-control py-2" placeholder="tenban@gmail.com" value="@Model.Email" required />
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="flash flash--err m-0" role="alert">
+                    <svg class="icon" aria-hidden="true"><use href="#i-alert" /></svg><span>@errorMessage</span>
+                </div>
+            }
+
+            <div class="field">
+                <label for="loginEmail">Email</label>
+                <input id="loginEmail" type="email" name="Email" class="form-control" autocomplete="email" placeholder="tenban@gmail.com" value="@Model.Email" required />
             </div>
 
-            <div class="mb-3">
-                <label class="form-label fw-bold small text-muted">Mật khẩu</label>
-                <input type="password" name="Password" class="form-control py-2" placeholder="••••••••" required />
-            </div>
-
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="RememberMe" id="rememberMe" value="true" @(Model.RememberMe ? "checked" : "") />
-                    <label class="form-check-label small text-muted" for="rememberMe">
-                        Ghi nhớ đăng nhập
-                    </label>
+            <div class="field">
+                <label for="loginPassword">Mật khẩu</label>
+                <div class="pw-field">
+                    <input id="loginPassword" type="password" name="Password" class="form-control" autocomplete="current-password" required />
+                    <button type="button" class="pw-toggle" data-target="loginPassword" aria-label="Hiện mật khẩu" aria-pressed="false">
+                        <svg class="icon" aria-hidden="true"><use href="#i-eye" /></svg>
+                    </button>
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm" style="border-radius: 8px;">
-                Đăng Nhập
-            </button>
-        </form>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="RememberMe" id="rememberMe" value="true" @(Model.RememberMe ? "checked" : "") />
+                <label class="form-check-label" for="rememberMe">Ghi nhớ đăng nhập trên máy này</label>
+            </div>
 
-        <div class="text-center mt-4 pt-3 border-top text-muted small">
-            Chưa có tài khoản? <a href="/Auth/Register" class="text-success fw-bold text-decoration-none">Đăng ký ngay</a> (Tặng 50 Xu)
-        </div>
+            <button type="submit" class="btn-arcade btn-arcade--green btn-arcade--lg btn-arcade--block">Đăng nhập</button>
+
+            <p class="auth__switch">Chưa có tài khoản? <a href="/Auth/Register">Đăng ký và nhận 50 xu</a></p>
+        </form>
     </div>
 </div>

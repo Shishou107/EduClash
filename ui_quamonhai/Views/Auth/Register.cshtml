@@ -1,58 +1,79 @@
 @model RegisterRequest
 @{
-    ViewData["Title"] = "Đăng Ký Tài Khoản — EduClash";
+    ViewData["Title"] = "Đăng ký · EduClash";
     string? errorMessage = ViewBag.ErrorMessage as string;
 }
 
-<div class="container py-5" style="max-width: 520px;">
-    <div class="card shadow border-0 p-4 p-md-5" style="border-radius: 16px; background: #FFFFFF;">
-        <div class="text-center mb-4">
-            <div class="d-inline-flex p-3 rounded-circle mb-3" style="background: rgba(16, 185, 129, 0.1);">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="#059669"/>
-                </svg>
-            </div>
-            <h2 class="h4 fw-bold text-dark m-0">Tạo Tài Khoản Mới</h2>
-            <p class="text-muted small mt-1">Đăng ký để nhận ngay <strong>🪙 50 Xu</strong> tạo bài thi và so tài cùng bạn bè</p>
-        </div>
+<div class="wrap">
+    <div class="auth panel">
+        <aside class="auth__side">
+            <h2>Tạo tài khoản, nhận ngay 50 xu</h2>
+            <ul class="perk-list">
+                <li><span class="perk-icon"><svg class="icon" aria-hidden="true"><use href="#i-coin" /></svg></span><div><strong>50 xu khởi đầu</strong>Đủ để AI soạn khoảng 100 câu trắc nghiệm từ đề cương.</div></li>
+                <li><span class="perk-icon"><svg class="icon" aria-hidden="true"><use href="#i-upload" /></svg></span><div><strong>Chia sẻ đề cương</strong>Tải lên file Word hoặc PDF cho cả lớp cùng ôn.</div></li>
+                <li><span class="perk-icon"><svg class="icon" aria-hidden="true"><use href="#i-trophy" /></svg></span><div><strong>Ghi tên lên bảng xếp hạng</strong>Thắng trận để leo từ Đồng lên Kim Cương.</div></li>
+            </ul>
+        </aside>
 
-        @if (!string.IsNullOrEmpty(errorMessage))
-        {
-            <div class="alert alert-danger py-2 small" role="alert">
-                @errorMessage
-            </div>
-        }
-
-        <form method="post" action="/Auth/Register">
+        <form method="post" action="/Auth/Register" class="auth__form">
             @Html.AntiForgeryToken()
+            <h1>Đăng ký</h1>
+            <p>Chỉ mất chưa tới một phút.</p>
 
-            <div class="mb-3">
-                <label class="form-label fw-bold small text-muted">Họ và Tên</label>
-                <input type="text" name="DisplayName" class="form-control py-2" placeholder="Nguyễn Văn A" value="@Model.DisplayName" required />
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="flash flash--err m-0" role="alert">
+                    <svg class="icon" aria-hidden="true"><use href="#i-alert" /></svg><span>@errorMessage</span>
+                </div>
+            }
+
+            <div class="field">
+                <label for="regName">Họ và tên</label>
+                <input id="regName" type="text" name="DisplayName" class="form-control" autocomplete="name" placeholder="Nguyễn Văn A" value="@Model.DisplayName" minlength="2" maxlength="60" required />
             </div>
 
-            <div class="mb-3">
-                <label class="form-label fw-bold small text-muted">Email</label>
-                <input type="email" name="Email" class="form-control py-2" placeholder="tenban@gmail.com" value="@Model.Email" required />
+            <div class="field">
+                <label for="regEmail">Email</label>
+                <input id="regEmail" type="email" name="Email" class="form-control" autocomplete="email" placeholder="tenban@gmail.com" value="@Model.Email" required />
             </div>
 
-            <div class="mb-3">
-                <label class="form-label fw-bold small text-muted">Mật khẩu</label>
-                <input type="password" name="Password" class="form-control py-2" placeholder="Ít nhất 6 ký tự" minlength="6" required />
+            <div class="field">
+                <label for="regPassword">Mật khẩu</label>
+                <div class="pw-field">
+                    <input id="regPassword" type="password" name="Password" class="form-control" autocomplete="new-password" minlength="8"
+                           pattern="(?=.*[A-Z])(?=.*\d).{8,}" aria-describedby="regPasswordHint" required />
+                    <button type="button" class="pw-toggle" data-target="regPassword" aria-label="Hiện mật khẩu" aria-pressed="false">
+                        <svg class="icon" aria-hidden="true"><use href="#i-eye" /></svg>
+                    </button>
+                </div>
+                <p class="field-hint" id="regPasswordHint">Ít nhất 8 ký tự, có 1 chữ hoa và 1 chữ số.</p>
             </div>
 
-            <div class="mb-4">
-                <label class="form-label fw-bold small text-muted">Xác nhận Mật khẩu</label>
-                <input type="password" name="ConfirmPassword" class="form-control py-2" placeholder="Nhập lại mật khẩu" minlength="6" required />
+            <div class="field">
+                <label for="regConfirm">Nhập lại mật khẩu</label>
+                <input id="regConfirm" type="password" name="ConfirmPassword" class="form-control" autocomplete="new-password" minlength="8" required />
             </div>
 
-            <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm" style="border-radius: 8px;">
-                Đăng Ký &amp; Nhận 50 Xu
+            <button type="submit" class="btn-arcade btn-arcade--gold btn-arcade--lg btn-arcade--block">
+                <svg class="icon" aria-hidden="true"><use href="#i-coin" /></svg>Đăng ký và nhận 50 xu
             </button>
-        </form>
 
-        <div class="text-center mt-4 pt-3 border-top text-muted small">
-            Đã có tài khoản? <a href="/Auth/Login" class="text-success fw-bold text-decoration-none">Đăng nhập ngay</a>
-        </div>
+            <p class="auth__switch">Đã có tài khoản? <a href="/Auth/Login">Đăng nhập</a></p>
+        </form>
     </div>
 </div>
+
+@section Scripts {
+<script>
+    // Báo ngay khi hai mật khẩu không khớp, thay vì chờ server trả lỗi.
+    (function () {
+        const pw = document.getElementById('regPassword');
+        const confirm = document.getElementById('regConfirm');
+        const check = () => confirm.setCustomValidity(confirm.value && confirm.value !== pw.value ? 'Mật khẩu nhập lại chưa khớp.' : '');
+        pw.addEventListener('input', check);
+        confirm.addEventListener('input', check);
+        pw.addEventListener('invalid', () => pw.setCustomValidity(pw.validity.patternMismatch || pw.validity.tooShort ? 'Mật khẩu cần ít nhất 8 ký tự, có 1 chữ hoa và 1 chữ số.' : ''));
+        pw.addEventListener('input', () => pw.setCustomValidity(''));
+    })();
+</script>
+}
